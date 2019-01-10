@@ -3,21 +3,81 @@ import './style.css';
 
 export default class Canvas extends Component {
     state = {
-        // pointA: {
-        //     x: null,
-        //     y: null
-        // },
-        //
-        // pointB: {
-        //     x: null,
-        //     y: null
-        // },
+        lines: [],
+        currentLinePoints: [],
+        mode: {
+            active: 'none',
+            store: ['none', 'draw', 'earse']
+        }
+    }
 
-        currentLinePoints: []
+    setDrawingMode() {
+        const mode = {active: 'draw'};
+        this.setState({ mode });
+    }
+
+    setNoneMode() {
+        const mode = {active: 'none'};
+        this.setState({
+            mode: mode,
+            currentLinePoints: []
+        });
+    }
+
+    componentDidMount() { // установка обработчиков на готовый canvas
+        const canvas = this.refs.canvas;
+        const self = this;
+
+        // компьютерное управление
+        canvas.onmousedown = function drag(event) {
+            self.setDrawingMode();
+
+            self.addPointToCurrentLine(event.clientX, event.clientY);
+
+            canvas.onmousemove = function move(event) {
+                self.addPointToCurrentLine(event.clientX, event.clientY);
+            };
+
+            canvas.onmouseup = function drop(event) {
+                self.addPointToCurrentLine(event.clientX, event.clientY);
+                self.addCurrentLine(self.state.currentLinePoints);
+
+                self.setNoneMode();
+
+                canvas.onmousemove = canvas.onmouseup = null;
+            };
+        };
+    }
+
+    addPointToCurrentLine(x, y) {
+        const currentLinePoints = this.state.currentLinePoints.slice();
+        currentLinePoints.push({x: x, y: y});
+        this.setState({ currentLinePoints });
+    }
+
+    addCurrentLine(currentLinePoints) {
+        const points = currentLinePoints.slice();
+        const lines = this.state.lines.slice();
+        lines.push(points);
+        this.setState({ lines });
+    }
+
+    shouldComponentUpdate() {
+        return this.state.mode.active !== 'none';
+    }
+
+    componentDidUpdate(prevProps, prevstate, snapshot) {
+        this.updateScreen(); // обновление экрана
+        console.log(this.state.lines, this.state.currentLinePoints);
+    }
+
+    updateScreen() { // обновление canvas
+        if (this.state.currentLinePoints.length === 0) return;
+        const {x, y} = this.state.currentLinePoints[this.state.currentLinePoints.length - 1];
+        this.draw(x, y);
     }
 
     draw(x, y) {
-        console.log(x, y);
         const canvas = this.refs.canvas;
         // const canvasWidth = this.props.width;
         // const canvasHeight = this.props.height;
@@ -34,66 +94,14 @@ export default class Canvas extends Component {
             ctx.restore();
         }
 
-        function drawLine() {
-
-        }
-
-
-    }
-
-    addPoint(x, y) {
-        
-
-
-
-
-        // const ;
-
-        // if (!this.state.pointA.x) { // первый шаг
-        //     newPointA = {x: x, y: y};
-        // } else if (this.state.pointA && !this.state.pointB) { // второй щаг
-        //     newPointB = {x: x, y: y};
-        // } else { // последующие
-        //     newPointB = {x: x, y: y};
-        //     newPointA = Object.assign({}, this.state.pointB);
+        // function drawLine() {
+        //
         // }
 
-        // this.setState({
-        //     pointA: newPointA,
-        //     pointB: newPointB
-        // });
-    }
-
-    componentDidMount() { // установка обработчиков на готовый canvas
-        const canvas = this.refs.canvas;
-        const self = this;
-
-        canvas.onmousedown = function drag(event) {
-            self.addPoint(event.clientX, event.clientY);
-
-            canvas.onmousemove = function move(event) {
-                self.addPoint(event.clientX, event.clientY);
-            };
-
-            canvas.onmouseup = function drop(event) {
-                self.addPoint(event.clientX, event.clientY);
-                canvas.onmousemove = canvas.onmouseup = null;
-            };
-        };
-
 
     }
 
-    componentDidUpdate(prevProps, prevstate, snapshot {
-        this.updateScreen(); // обновление экрана
 
-        this.setState({})
-    }
-
-    updateScreen() { // обновление canvas
-        const {x, y} = this.state.lastPoint;
-        this.draw(x, y);
-    }
 
     render() {
         return (
