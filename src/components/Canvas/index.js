@@ -3,12 +3,15 @@ import './style.css';
 
 export default class Canvas extends Component {
     state = {
-        lines: [],
-        currentLinePoints: [],
         mode: {
             active: 'none',
             store: ['none', 'draw', 'earse']
-        }
+        },
+
+        inputLines: [], // история входных линий
+        currentInputLinePoints: [], // точки текущей входной линии
+        paths: [], // история траекторий
+        currentPathPoints: [] // точки текущей траектории
     }
 
     setDrawingMode() {
@@ -32,15 +35,15 @@ export default class Canvas extends Component {
         canvas.onmousedown = function drag(event) {
             self.setDrawingMode();
 
-            self.addPointToCurrentLine(event.clientX, event.clientY);
+            self.addPointToCurrentInputLine(event.clientX, event.clientY);
 
             canvas.onmousemove = function move(event) {
-                self.addPointToCurrentLine(event.clientX, event.clientY);
+                self.addPointToCurrentInputLine(event.clientX, event.clientY);
             };
 
             canvas.onmouseup = function drop(event) {
-                self.addPointToCurrentLine(event.clientX, event.clientY);
-                self.addCurrentLine(self.state.currentLinePoints);
+                self.addPointToCurrentInputLine(event.clientX, event.clientY);
+                self.addCurrentInputLine(self.state.currentInputLinePoints);
 
                 self.setNoneMode();
 
@@ -49,31 +52,39 @@ export default class Canvas extends Component {
         };
     }
 
-    addPointToCurrentLine(x, y) {
-        const currentLinePoints = this.state.currentLinePoints.slice();
-        currentLinePoints.push({x: x, y: y});
-        this.setState({ currentLinePoints });
+    addPointToCurrentInputLine(x, y) {
+        const currentInputLinePoints = this.state.currentInputLinePoints.slice();
+        currentInputLinePoints.push({x: x, y: y});
+        this.setState({ currentInputLinePoints });
     }
 
-    addCurrentLine(currentLinePoints) {
-        const points = currentLinePoints.slice();
-        const lines = this.state.lines.slice();
-        lines.push(points);
-        this.setState({ lines });
+    addCurrentInputLine(currentInputLinePoints) {
+        const inputPoints = currentInputLinePoints.slice();
+        const inputLines = this.state.inputLines.slice();
+        inputLines.push(inputPoints);
+        this.setState({ inputLines });
     }
 
     shouldComponentUpdate() {
         return this.state.mode.active !== 'none';
     }
 
+    printInputLog() {
+        console.log('\nINPUT:\n');
+        console.log('lines =', this.state.inputLines);
+        console.log('points =', this.state.currentInputLinePoints);
+    }
+
     componentDidUpdate(prevProps, prevstate, snapshot) {
         this.updateScreen(); // обновление экрана
-        console.log(this.state.lines, this.state.currentLinePoints);
+
+        // cлужебная информация 
+        this.printInputLog();
     }
 
     updateScreen() { // обновление canvas
-        if (this.state.currentLinePoints.length === 0) return;
-        const {x, y} = this.state.currentLinePoints[this.state.currentLinePoints.length - 1];
+        if (this.state.currentInputLinePoints.length === 0) return;
+        const {x, y} = this.state.currentInputLinePoints[this.state.currentInputLinePoints.length - 1];
         this.draw(x, y);
     }
 
@@ -82,10 +93,9 @@ export default class Canvas extends Component {
         // const canvasWidth = this.props.width;
         // const canvasHeight = this.props.height;
         const ctx = canvas.getContext('2d');
-        drawRound();
+        drawRound(x, y);
 
-
-        function drawRound() {
+        function drawRound(x, y) {
             ctx.save();
             ctx.fillStyle = 'red'; // кружок
             ctx.beginPath();
