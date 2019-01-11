@@ -11,6 +11,7 @@ export default class Canvas extends Component {
         const mode = {active: 'none'};
         this.setState({
             mode: mode,
+            pathsForCurrentInput: [],
             currentInputLinePoints: []
         });
     }
@@ -21,6 +22,7 @@ export default class Canvas extends Component {
             `points:${this.state.currentInputLinePoints.length}`
         );
         console.log('points =', this.state.currentInputLinePoints);
+        console.log('generated paths = ', this.state.pathsForCurrentInput);
     }
 
     state = {
@@ -32,7 +34,7 @@ export default class Canvas extends Component {
         inputLines: [], // история входных линий
         currentInputLinePoints: [], // точки текущей входной линии
 
-        paths: [], // история траекторий
+        pathsForCurrentInput: [], // история траекторий
         currentPathPoints: [] // точки текущей траектории
     }
 
@@ -49,6 +51,7 @@ export default class Canvas extends Component {
 
             canvas.onmousemove = function move(event) {
                 self.addPointToCurrentInputLine(event.clientX, event.clientY);
+                self.updateCurrentPath();
             };
 
             canvas.onmouseup = function drop(event) {
@@ -57,10 +60,6 @@ export default class Canvas extends Component {
 
                 // cлужебная информация в консоль
                 self.printServiceLog();
-
-
-                self.generateCurrentPath(self.state.currentInputLinePoints);
-
 
                 self.setNoneMode();
 
@@ -82,8 +81,17 @@ export default class Canvas extends Component {
         this.setState({ inputLines });
     }
 
-    generateCurrentPath(currentInputLinePoints) {
-        const inputPoints = currentInputLinePoints.slice();
+    updateCurrentPath() {
+        if (this.state.currentInputLinePoints < 3) return;
+        const currentPathPoints = this.generateCurrentPath(this.state.currentInputLinePoints.slice(-3));
+        const pathsForCurrentInput = this.state.pathsForCurrentInput.slice();
+        pathsForCurrentInput.push(currentPathPoints);
+        this.setState({ currentPathPoints, pathsForCurrentInput });
+    }
+
+    // generateCurrentPath(currentInputLinePoints) {
+    generateCurrentPath(inputPoints) {
+        // const inputPoints = currentInputLinePoints.slice(-3);
         const N = inputPoints.length;
         if (N < 3) return null;
 
@@ -102,31 +110,30 @@ export default class Canvas extends Component {
                 const y = inputPoints[i].y;
                 const polynom = `${y}*( ${basis} ) + `;
                 return formula + polynom;
-        }, 'return ').slice(0, -2);
+        }, 'return ').slice(0, -3);
 
-        console.log('polynomFunctionText: \n', polynomFunctionText);
+        // console.log('polynomFunctionText: \n', polynomFunctionText);
 
         const polynomFunction = new Function('x', polynomFunctionText);
 
-        let {x:xStart, y:yStart} = currentInputLinePoints[0];
-        let {x:xEnd, y:yEnd} = currentInputLinePoints[N-1];
+        let {x:xStart, y:yStart} = inputPoints[0];
+        let {x:xEnd, y:yEnd} = inputPoints[N-1];
 
         let path = [];
         let x = xStart, y = yStart;
         const dX = Math.abs(xEnd-xStart), dY = Math.abs(yEnd-yStart);
 
-
-        if (dX === 0 || dY === 0) { // прямые
-            while (x !== xEnd) {
-                path.push({x: x, y: y});
-                x < xEnd ? x++ : x--;
-            };
-            while (y !== yEnd) {
-                path.push({x: x, y: y});
-                y < yEnd ? y++ : y--;
-            };
-        } else { // кривые
-            if (dX <= dY) {
+        // if (dX === 0 || dY === 0) { // прямые
+        //     while (x !== xEnd) {
+        //         path.push({x: x, y: y});
+        //         x < xEnd ? x++ : x--;
+        //     };
+        //     while (y !== yEnd) {
+        //         path.push({x: x, y: y});
+        //         y < yEnd ? y++ : y--;
+        //     };
+        // } else { // кривые
+            if (dX > dY) {
                 while (x !== xEnd) {
                     path.push({
                         x: x,
@@ -135,7 +142,7 @@ export default class Canvas extends Component {
                     x < xEnd ? x++ : x--;
                 };
             };
-            if (dX > dY) {
+            if (dX <= dY) {
                 while (y !== yEnd) {
                     path.push({
                         x: polynomFunction(y),
@@ -144,7 +151,7 @@ export default class Canvas extends Component {
                     y < yEnd ? y++ : y--;
                 };
             };
-        }
+        // }
 
         // if (xStart === xEnd && yStart !== yEnd) { // вер
         //     while (y !== yEnd) {
@@ -166,7 +173,7 @@ export default class Canvas extends Component {
         //     };
         // };
 
-        console.dir(path);
+        // console.dir(path);
         return path;
     }
 
@@ -179,13 +186,31 @@ export default class Canvas extends Component {
     }
 
     updateScreen() { // обновление canvas
-        if (this.state.currentInputLinePoints.length === 0) return;
+        if (this.state.currentInputLinePoints.length < 3) return;
         const {x, y} = this.state.currentInputLinePoints[this.state.currentInputLinePoints.length - 1];
         this.draw(x, y);
+        this.drawPath();
+    }
+
+    drawPath() {
+        if (!this.state.currentPathPoints) return;
+        const canvas = this.refs.canvas;
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.strokeStyle = 'black';
+        ctx.beginPath();
+        const currentPathPoints = this.state.currentPathPoints.slice(2);
+        ctx.moveTo(currentPathPoints[0].x, currentPathPoints[0].y)
+        for (let i = 1; i < currentPathPoints.length; i++) {
+            ctx.lineTo(currentPathPoints[i].x, currentPathPoints[i].y);
+        }
+        ctx.stroke();
+        ctx.restore();
     }
 
     draw(x, y) {
         const canvas = this.refs.canvas;
+        const self = this;
         // const canvasWidth = this.props.width;
         // const canvasHeight = this.props.height;
         const ctx = canvas.getContext('2d');
@@ -199,6 +224,8 @@ export default class Canvas extends Component {
             ctx.fill();
             ctx.restore();
         }
+
+
     }
 
     render() {
