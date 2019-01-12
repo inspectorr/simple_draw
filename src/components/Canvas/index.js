@@ -19,7 +19,7 @@ export default class Canvas extends Component {
 
     printServiceLog() {
         console.log(`\nINPUT CAPTURED:`,
-            `line-${this.state.inputLines.length}`,
+            `line-${this.state.inputedLines.length}`,
             `points:${this.state.currentInputLinePoints.length}`
         );
         console.log('points =', this.state.currentInputLinePoints);
@@ -32,13 +32,15 @@ export default class Canvas extends Component {
             store: ['none', 'draw', 'earse']
         },
 
-        // inputedPointsCnt: 0,
-        inputLines: [], // история входных линий
+        inputedLines: [], // история входных линий
         currentInputLinePoints: [], // точки текущей входной линии
+
+        pathA: null,
+        pathB: null,
 
         // drawingPath: 0,
         // pathsForCurrentInput: [], // история траекторий
-        drawingPathPoints: [] // точки текущей траектории
+        drawingPathPoints: [] // точки текущей траектории отрисовки
     }
 
     componentDidMount() { // установка обработчиков на готовый canvas
@@ -49,12 +51,12 @@ export default class Canvas extends Component {
         canvas.onmousedown = function drag(event) {
             self.addPointToCurrentInputLine(event.clientX, event.clientY);
             self.setDrawingMode();
-            self.updateScreen();
+            self.updateScreen(); //!!!!!!!!
 
             canvas.onmousemove = function move(event) {
                 self.addPointToCurrentInputLine(event.clientX, event.clientY);
                 if (self.state.currentInputLinePoints.length >= 3) self.updateDrawingPath();
-                self.updateScreen();
+                self.updateScreen(); //!!!!!!!!
             };
 
             canvas.onmouseup = function drop(event) {
@@ -74,28 +76,47 @@ export default class Canvas extends Component {
     addPointToCurrentInputLine(x, y) {
         const currentInputLinePoints = this.state.currentInputLinePoints.slice();
         currentInputLinePoints.push({x: x, y: y});
-        this.setState({
-            currentInputLinePoints,
-            inputedPointsCnt: this.state.inputedPointsCnt + 1
-         });
+        this.setState({ currentInputLinePoints });
     }
 
     addCurrentInputLine(currentInputLinePoints) {
         const inputPoints = currentInputLinePoints.slice();
-        const inputLines = this.state.inputLines.slice();
-        inputLines.push(inputPoints);
-        this.setState({ inputLines });
+        const inputedLines = this.state.inputedLines.slice();
+        inputedLines.push(inputPoints);
+        this.setState({ inputedLines });
     }
 
     updateDrawingPath() {
-        const drawingPathPoints = this.generateDrawingPathFromPoints(this.state.currentInputLinePoints.slice(-3));
+        let pathA = this.generate2DrawingPathsFrom3Points(
+            this.state.currentInputLinePoints.slice(-3)
+        )[0];
+
+        function approximatePathes(arr1, arr2) {
+            arr1 = arr1.slice(), arr2 = arr2.slice();
+
+        }
+
+        if (this.setState.pathB) {
+            pathA = approximatePathes(pathA, this.state.pathB);
+        };
+
+        this.setState({ pathA });
+
+        let pathB = this.generate2DrawingPathsFrom3Points(
+            this.state.currentInputLinePoints.slice(-3)
+        )[1];
+
+        this.setState({ pathB });
+
+        const drawingPathPoints = pathA.slice();
         this.setState({
-            drawingPathPoints,
+            drawingPathPoints
         });
     }
 
-    generateDrawingPathFromPoints(inputPoints) {
-        const N = 3;
+    generate2DrawingPathsFrom3Points(inputPoints) {
+        // const N = 3;
+        const N = inputPoints.length;
 
         function generateFunctionText(argName, valueName) {
             const basisPolynomsFunctionTexts = inputPoints.map((point, i, arr) => {
@@ -106,71 +127,78 @@ export default class Canvas extends Component {
                     const member = `((${argName}-${arr[j][argName]})/(${point[argName]}-${arr[j][argName]}))`;
                     basisPolynomFunctionText += member + '*';
                 }
-                return basisPolynomFunctionText.slice(0, -1);
+                return basisPolynomFunctionText.slice(0, -1); //страем последнюю звездочку:))
             });
 
             return basisPolynomsFunctionTexts.reduce((formula, basis, i) => {
                     const polynom = `${inputPoints[i][valueName]}*( ${basis} ) + `;
                     return formula + polynom;
-            }, 'return ').slice(0, -3);
+            }, 'return ').slice(0, -3); //страем последний плюсик:))
         }
 
         const polynomFunctionX = new Function('x', generateFunctionText('x', 'y'));
         const polynomFunctionY = new Function('y', generateFunctionText('y', 'x'));
 
-        // console.log('polynomFunctionText: \n', polynomFunctionText);
+        // console.log('polynomFunction(): \n', polynomFunctionText);
 
-        let {x:xStart, y:yStart} = inputPoints[0];
-        let {x:xEnd, y:yEnd} = inputPoints[N-1];
+        // let {x:xStart, y:yStart} = inputPoints[0];
+        // let {x:xEnd, y:yEnd} = inputPoints[N-1];
 
-        let path = [];
-        let x = xStart, y = yStart;
-        const dX = Math.abs(xEnd-xStart), dY = Math.abs(yEnd-yStart);
-        const step = 0.5;
+        function createPath(xStart, yStart, xEnd, yEnd) {
+            let path = [];
+            let x = xStart, y = yStart;
+            const dX = Math.abs(xEnd-xStart), dY = Math.abs(yEnd-yStart);
+            const step = 0.5;
 
-
-        if (dX === 0 || dY === 0) {
-            if (dX === 0 && dY !== 0) {
-                while (y !== yEnd) {
-                    path.push({
-                        x: x,
-                        y: y
-                    });
+            if (dX === 0 || dY === 0) { // горизонтальная и вертикальная линии
+                if (dX === 0 && dY !== 0) {
+                    while (y !== yEnd) {
+                        path.push({
+                            x: x,
+                            y: y
+                        });
                         y < yEnd ? y+=step : y-=step;
+                    };
                 };
-            };
-            if (dX !== 0 && dY === 0) {
-                while (x !== xEnd) {
-                    path.push({
-                        x: x,
-                        y: y
-                    });
+                if (dX !== 0 && dY === 0) {
+                    while (x !== xEnd) {
+                        path.push({
+                            x: x,
+                            y: y
+                        });
                         x < xEnd ? x+=step : x-=step;
+                    };
                 };
-            }
-        } else {
-            if (dX >= dY) {
-                while (x !== xEnd) {
-                    path.push({
-                        x: x,
-                        y: polynomFunctionX(x)
-                    });
+            } else { // наклонные линии
+                if (dX >= dY) {
+                    while (x !== xEnd) {
+                        path.push({
+                            x: x,
+                            y: polynomFunctionX(x)
+                        });
                         x < xEnd ? x+=step : x-=step;
+                    };
+                };
+                if (dX < dY) {
+                    while (y !== yEnd) {
+                        path.push({
+                            x: polynomFunctionY(y),
+                            y: y
+                        });
+                        y < yEnd ? y+=step : y-=step;
+                    };
                 };
             };
-            if (dX < dY) {
-                while (y !== yEnd) {
-                    path.push({
-                        x: polynomFunctionY(y),
-                        y: y
-                    });
-                    y < yEnd ? y+=step : y-=step;
-                };
-            };
-        };
 
-        // console.dir(path);
-        return path;
+
+
+            // console.dir(path);
+            return path;
+        }
+
+        let pathA = createPath(inputPoints[0].x, inputPoints[0].y, inputPoints[1].x, inputPoints[1].y);
+        let pathB = createPath(inputPoints[1].x, inputPoints[1].y, inputPoints[2].x, inputPoints[2].y);
+        return [pathA, pathB];
     }
 
     updateScreen() { // обновление canvas
@@ -204,9 +232,9 @@ export default class Canvas extends Component {
         const ctx = canvas.getContext('2d');
 
         ctx.save();
-        ctx.fillStyle = 'black'; // кружок
+        ctx.fillStyle = 'red'; // кружок
         ctx.beginPath();
-        ctx.arc(x, y, 1.5, 0, Math.PI*2);
+        ctx.arc(x, y, 3, 0, Math.PI*2);
         ctx.fill();
         ctx.restore();
     }
