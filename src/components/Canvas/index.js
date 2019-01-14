@@ -11,6 +11,9 @@ export default class Canvas extends Component {
         const mode = {active: 'none'};
         this.setState({
             mode: mode,
+
+            pathA: null,
+            pathB: null,
             // drawingPathPoints: [],
             // pathsForCurrentInput: [],
             currentInputLinePoints: []
@@ -87,28 +90,41 @@ export default class Canvas extends Component {
     }
 
     updateDrawingPath() {
-        let pathA = this.generate2DrawingPathsFrom3Points(
+        const self = this;
+
+        const [pathA, pathB] = this.generate2DrawingPathsFrom3Points(
             this.state.currentInputLinePoints.slice(-3)
-        )[0];
+        );
+
 
         function approximatePathes(arr1, arr2) {
-            arr1 = arr1.slice(), arr2 = arr2.slice();
-
+            const start = arr1[0], end = arr1[arr1.legth-1];
+            const c1 = arr1[Math.round(arr1.length/2)-1];
+            const c2 = arr2[Math.round(arr2.length/2)-1];
+            const center = {
+                x: (c1.x + c2.x)/2,
+                y: (c1.y + c2.y)/2
+            };
+            let pathes = self.generate2DrawingPathsFrom3Points([start, center, end]);
+            return pathes[0].concat(pathes[1]);
         }
-
-        if (this.setState.pathB) {
-            pathA = approximatePathes(pathA, this.state.pathB);
-        };
 
         this.setState({ pathA });
 
-        let pathB = this.generate2DrawingPathsFrom3Points(
-            this.state.currentInputLinePoints.slice(-3)
-        )[1];
+        // if (this.setState.pathB) {
+        //     pathA = approximatePathes(pathA, this.state.pathB);
+        // };
+
+        console.log(this.state.pathA, this.state.pathB);
+
 
         this.setState({ pathB });
 
-        const drawingPathPoints = pathA.slice();
+
+
+        let drawingPathPoints = [];
+        this.state.pathA.forEach((item) => drawingPathPoints.push(item));
+        // this.state.pathB.forEach((item) => drawingPathPoints.push(item));
         this.setState({
             drawingPathPoints
         });
