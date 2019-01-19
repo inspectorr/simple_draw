@@ -33,29 +33,30 @@ export default class Canvas extends Component {
         buffer: [],
 
         inputedLines: [], // история входных линий
-        lastInput: null,
+        // lastInput: null,
 
         currentInputLinePoints: [], // точки текущей входной линии
-        drawingPathPoints: null // точки текущей траектории отрисовки
+        // drawingPathPoints: null // точки текущей траектории отрисовки
     }
 
     componentDidMount() { // установка обработчиков на готовый canvas
         const canvas = this.refs.canvas;
         const self = this;
 
-        let timer;
-        timer = setInterval(() => {
-            self.update();
-        }, 40);
+        // setInterval(() => {
+        //     self.update();
+        // }, 50);
 
         // компьютерное управление
         canvas.onmousedown = function drag(event) {
             console.log('\nINPUT STARTED\n');
-            self.addPointToCurrentInputLine(event.clientX, event.clientY);
             self.setDrawingMode();
+            self.addPointToCurrentInputLine(event.clientX, event.clientY);
+            self.update();
 
             canvas.onmousemove = function move(event) {
                 self.addPointToCurrentInputLine(event.clientX, event.clientY);
+                self.update();
             };
 
             canvas.onmouseup = function drop(event) {
@@ -190,7 +191,7 @@ export default class Canvas extends Component {
         const ctx = canvas.getContext('2d');
 
         ctx.save();
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = 'purple';
         ctx.lineWidth = 4;
         ctx.beginPath();
 
@@ -208,7 +209,7 @@ export default class Canvas extends Component {
         const ctx = canvas.getContext('2d');
 
         ctx.save();
-        ctx.fillStyle = 'black'; // кружок
+        ctx.fillStyle = 'purple'; // кружок
         ctx.beginPath();
         ctx.arc(x, y, 2, 0, Math.PI*2);
         ctx.fill();
