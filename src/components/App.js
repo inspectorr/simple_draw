@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import Canvas from './Canvas';
 
+// const root = document.getElementById('root');
+// const width = root.offsetWidth;
+// const height = root.offsetHeight;
+
 class App extends Component {
     state = {
         height: document.documentElement.clientHeight,

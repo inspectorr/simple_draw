@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import './style.css';
 
+const lineWidth = 4;
+
 export default class Canvas extends Component {
     setDrawingMode() {
         const mode = {active: 'draw'};
@@ -31,32 +33,31 @@ export default class Canvas extends Component {
         },
 
         buffer: [],
-
         inputedLines: [], // история входных линий
-        // lastInput: null,
-
         currentInputLinePoints: [], // точки текущей входной линии
-        // drawingPathPoints: null // точки текущей траектории отрисовки
     }
 
     componentDidMount() { // установка обработчиков на готовый canvas
         const canvas = this.refs.canvas;
         const self = this;
-
-        // setInterval(() => {
-        //     self.update();
-        // }, 50);
+        const coords = canvas.getBoundingClientRect();
 
         // компьютерное управление
         canvas.onmousedown = function drag(event) {
             console.log('\nINPUT STARTED\n');
             self.setDrawingMode();
-            self.addPointToCurrentInputLine(event.clientX, event.clientY);
-            self.update();
+            self.addPointToCurrentInputLine(
+                event.pageX - coords.left,
+                event.pageY - coords.top
+            );
+            self.UPDATE();
 
             canvas.onmousemove = function move(event) {
-                self.addPointToCurrentInputLine(event.clientX, event.clientY);
-                self.update();
+                self.addPointToCurrentInputLine(
+                    event.pageX - coords.left,
+                    event.pageY - coords.top
+                );
+                self.UPDATE();
             };
 
             canvas.onmouseup = function drop(event) {
@@ -89,117 +90,65 @@ export default class Canvas extends Component {
         this.setState({ inputedLines });
     }
 
-    generateDrawingPath(inputPoints) {
-        const N = inputPoints.length;
+    UPDATE() {
+        const buffer = this.state.buffer.slice();
+        const N = buffer.length;
 
-        function polynomFunction(valuePointName, argPointName, argValue) { // интерполяция многочленом Лагранжа
-            let value = inputPoints.reduce((sum, point, i, points) => {
-                let polynom = 1;
-                for (let j = 0; j < N; j++) {
-                    if (i === j) continue;
-                    let numerator = argValue - points[j][argPointName];
-                    let denominator = points[i][argPointName] - points[j][argPointName];
+        // const {x, y} = buffer[N-1];
+        // this.drawPoint(x, y);
 
-                    let member = numerator / denominator;
+        if (N < 4) return;
+        this.setState({ buffer: [].concat(buffer[N-1]) });
 
-                    if (denominator === 0) member = 1;
+        // this.drawCurve(buffer);
 
-                    polynom *= member;
-                    // console.log(numerator, denominator, member, polynom);
-                }
-                if (polynom === Infinity) polynom = 0;
-                // console.log(polynom);
-                return sum + points[i][valuePointName] * polynom;
-            }, 0);
-
-            return value;
+        let dxMax = 0, dyMax = 0;
+        for (let i = 0; i < N-1; i++) {
+            const {x:x1, y:y1} = buffer[i];
+            const {x:x2, y:y2} = buffer[i+1];
+            const dx = Math.abs(x1 - x2);
+            const dy = Math.abs(y1 - y2);
+            if (dx > dxMax) dxMax = dx;
+            if (dy > dyMax) dyMax = dy;
         }
 
-        const {x:xStart, y:yStart} = inputPoints[0];
-        const {x:xEnd, y:yEnd} = inputPoints[N-1];
-
-        let path = [];
-        const step = 1;
-
-        const dx = Math.abs(xStart-xEnd);
-        const dy = Math.abs(yStart-yEnd);
-
-        if (dx >= dy) {
-            for (let x = xStart; x !== xEnd; x < xEnd ? x+=step : x-=step) {
-                let y = polynomFunction('y', 'x', x);
-                let diff = Math.abs(x-xStart);
-                if (y === 0) y = yStart + diff;
-                path.push({x: x, y: y});
-            }
+        if (dxMax > lineWidth / 2 || dyMax > lineWidth / 2) {
+            this.drawCurve(buffer);
         } else {
-            for (let y = yStart; y !== yEnd; y < yEnd ? y+=step : y-=step) {
-                let x = polynomFunction('x', 'y', y);
-                let diff = Math.abs(y-yStart);
-                if (x === 0) x = xStart + diff;
-                path.push({x: x, y: y});
-            }
+            buffer.forEach((point) => this.drawPoint(point.x, point.y));
         }
-
-        return path;
     }
 
-    update() {
-        const input = this.state.currentInputLinePoints.slice();
-        const N = input.length;
-        if (N > 0) this.drawPoint(input[input.length-1].x, input[input.length-1].y);
-        if (N < 3) return;
-
-        console.log('\n--UPDATE START--\n');
-        console.log('_BUFFER_: ', this.state.buffer);
-
-        let drawingPathPoints = []; // итоговые точки траектории этапа
-
-        // сохраняем буфер в функции и очищаем его
-        let buffer = this.state.buffer;
-        if (buffer.length < 3) return;
-        this.setState({ buffer: [].concat(buffer[buffer.length-1]) });
-
-        while (buffer.length > 1) {
-            const dx = Math.abs(buffer[0].x - buffer[1].x);
-            const dy = Math.abs(buffer[0].y - buffer[1].y);
-
-            let stage;
-            if (buffer.length >= 3 && (dx > 20 || dy > 20)) { // кривая
-                stage = buffer.slice(0, 3);
-                stage = this.generateDrawingPath(stage);
-                console.log('curve generated: ', stage);
-                // обрезаем буфер, сохраняя последнюю точку этапа
-                buffer = buffer.slice(2);
-            } else { // прямая
-                stage = buffer.slice(0, 2);
-                console.log('line on input stage: ', stage);
-                // обрезаем буфер, сохраняя последнюю точку этапа
-                buffer = buffer.slice(1);
-            }
-
-            stage.forEach((point) => drawingPathPoints.push(point));
-        }
-
-        console.log('drawingPathPoints: ', drawingPathPoints);
-        console.log('--UPDATE END--\n');
-
-        if (drawingPathPoints.length) this.drawPath(drawingPathPoints);
-    }
-
-    drawPath(drawingPathPoints) {
-        const canvas = this.refs.canvas;
-        const ctx = canvas.getContext('2d');
-
+    drawCurve(points) { // кривая Безье по четырем точкам
+        const ctx = this.refs.canvas.getContext('2d');
         ctx.save();
-        ctx.strokeStyle = 'purple';
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'blue';
+        ctx.lineWidth = `${lineWidth}`;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
         ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        ctx.bezierCurveTo(
+            points[1].x, points[1].y,
+            points[2].x, points[2].y,
+            points[3].x, points[3].y
+        );
+        ctx.stroke();
+        ctx.restore();
+    }
 
-        ctx.moveTo(drawingPathPoints[0].x, drawingPathPoints[0].y);
-        for (let i = 1; i < drawingPathPoints.length; i++) {
-            ctx.lineTo(drawingPathPoints[i].x, drawingPathPoints[i].y);
-        };
-
+    drawLines(points) {
+        const ctx = this.refs.canvas.getContext('2d');
+        ctx.save();
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = `${lineWidth}`;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
         ctx.stroke();
         ctx.restore();
     }
@@ -207,11 +156,10 @@ export default class Canvas extends Component {
     drawPoint(x, y) {
         const canvas = this.refs.canvas;
         const ctx = canvas.getContext('2d');
-
         ctx.save();
-        ctx.fillStyle = 'purple'; // кружок
+        ctx.fillStyle = 'red';
         ctx.beginPath();
-        ctx.arc(x, y, 2, 0, Math.PI*2);
+        ctx.arc(x, y, lineWidth / 2, 0, Math.PI*2);
         ctx.fill();
         ctx.restore();
     }
