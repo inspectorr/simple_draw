@@ -1,0 +1,25 @@
+ul {
+    list-style: none;
+}
+
+li {
+    display: inline;
+}
+
+button {
+    position: relative;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: Transparent;
+    background-repeat: no-repeat;
+    /* background-color: blue;
+    color: white; */
+}
+
+button canvas {
+    postion: absolute;
+    top: 0;
+    left: 0;
+}

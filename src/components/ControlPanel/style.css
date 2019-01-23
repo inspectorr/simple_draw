@@ -1,0 +1,6 @@
+.container {
+    margin: auto;
+    /* border: 1px solid blue; */
+    position: fixed;
+    left: 50%;
+}

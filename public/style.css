@@ -6,3 +6,7 @@
 html, body {
     overflow: hidden;
 }
+
+#root {
+    text-align: center;
+}

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './style.css';
 
-const lineWidth = 4;
 
 export default class Canvas extends Component {
     setDrawingMode() {
@@ -32,6 +31,8 @@ export default class Canvas extends Component {
             store: ['none', 'draw', 'earse']
         },
 
+        brush: Object.assign([], this.props.panelProps.brush),
+
         buffer: [],
         inputedLines: [], // история входных линий
         currentInputLinePoints: [], // точки текущей входной линии
@@ -46,11 +47,10 @@ export default class Canvas extends Component {
         canvas.onmousedown = function drag(event) {
             console.log('\nINPUT STARTED\n');
             self.setDrawingMode();
-            self.addPointToCurrentInputLine(
-                event.pageX - coords.left,
-                event.pageY - coords.top
-            );
-            self.UPDATE();
+            const x = event.pageX - coords.left;
+            const y = event.pageY - coords.top;
+            self.addPointToCurrentInputLine(x, y);
+            self.drawPoint(x, y);// self.UPDATE();
 
             canvas.onmousemove = function move(event) {
                 self.addPointToCurrentInputLine(
@@ -93,6 +93,7 @@ export default class Canvas extends Component {
     UPDATE() {
         const buffer = this.state.buffer.slice();
         const N = buffer.length;
+        const brush = this.props.panelProps.brush;
 
         // const {x, y} = buffer[N-1];
         // this.drawPoint(x, y);
@@ -112,7 +113,7 @@ export default class Canvas extends Component {
             if (dy > dyMax) dyMax = dy;
         }
 
-        if (dxMax > lineWidth / 2 || dyMax > lineWidth / 2) {
+        if (dxMax > brush.thickness / 2 || dyMax > brush.thickness / 2) {
             this.drawCurve(buffer);
         } else {
             buffer.forEach((point) => this.drawPoint(point.x, point.y));
@@ -121,9 +122,11 @@ export default class Canvas extends Component {
 
     drawCurve(points) { // кривая Безье по четырем точкам
         const ctx = this.refs.canvas.getContext('2d');
+        const brush = this.props.panelProps.brush;
+
         ctx.save();
-        ctx.strokeStyle = 'blue';
-        ctx.lineWidth = `${lineWidth}`;
+        ctx.strokeStyle = `${brush.color}`;
+        ctx.lineWidth = `${brush.thickness}`;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
         ctx.beginPath();
@@ -137,29 +140,33 @@ export default class Canvas extends Component {
         ctx.restore();
     }
 
-    drawLines(points) {
-        const ctx = this.refs.canvas.getContext('2d');
-        ctx.save();
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = `${lineWidth}`;
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-        }
-        ctx.stroke();
-        ctx.restore();
-    }
+    // drawLines(points) {
+    //     const ctx = this.refs.canvas.getContext('2d');
+    //     const brush = this.props.panelProps.brush;
+    //
+    //     ctx.save();
+    //     ctx.strokeStyle = 'black';
+    //     ctx.lineWidth = `${brush.thickness}`;
+    //     ctx.lineJoin = 'round';
+    //     ctx.lineCap = 'round';
+    //     ctx.beginPath();
+    //     ctx.moveTo(points[0].x, points[0].y);
+    //     for (let i = 1; i < points.length; i++) {
+    //         ctx.lineTo(points[i].x, points[i].y);
+    //     }
+    //     ctx.stroke();
+    //     ctx.restore();
+    // }
 
     drawPoint(x, y) {
         const canvas = this.refs.canvas;
         const ctx = canvas.getContext('2d');
+        const brush = this.props.panelProps.brush;
+
         ctx.save();
         ctx.fillStyle = 'red';
         ctx.beginPath();
-        ctx.arc(x, y, lineWidth / 2, 0, Math.PI*2);
+        ctx.arc(x, y, brush.thickness / 2, 0, Math.PI*2);
         ctx.fill();
         ctx.restore();
     }
