@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 
-import BrushImage from '../images/BrushImage';
+import ColorImage from '../images/ColorImage';
 import Icon from '../Icon';
 
-export default class Brush extends Component {
+export default class Color extends Component {
 
     render() {
         const side = this.props.side;
@@ -17,7 +17,7 @@ export default class Brush extends Component {
                 <Icon
                     side={side}
                     color={color}
-                    image={(new BrushImage(side, color)).draw()}
+                    image={(new ColorImage(side, color)).draw()}
                 />
             </button>
         );

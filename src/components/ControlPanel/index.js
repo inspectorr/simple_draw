@@ -3,18 +3,39 @@ import './style.css';
 
 import ItemsList from './ItemsList';
 import Brush from './ItemsList/Brush';
+import Color from './ItemsList/Color';
+import Thickness from './ItemsList/Thickness';
 
 export default class ControlPanel extends Component {
     // центрированная панель с произвольным количеством элементов
     state = {
         items: [
-            <li key={1}>
+
+            <li key={0}>
                 <Brush
                     side={this.props.panelProps.height}
                     panelProps={this.props.panelProps}
                     color={this.props.panelProps.brush.color}
                 />
             </li>,
+
+            <li key={1}>
+                <Color
+                    side={this.props.panelProps.height}
+                    panelProps={this.props.panelProps}
+                    color={this.props.panelProps.brush.color}
+                />
+            </li>,
+
+            <li key={2}>
+                <Thickness
+                    side={this.props.panelProps.height}
+                    panelProps={this.props.panelProps}
+                    color={this.props.panelProps.brush.color}
+                    thickness={this.props.panelProps.brush.thickness}
+                />
+            </li>,
+            
         ],
     }
 

@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 
-import BrushImage from '../images/BrushImage';
+import ThicknessImage from '../images/ThicknessImage';
 import Icon from '../Icon';
 
-export default class Brush extends Component {
+export default class Thickness extends Component {
 
     render() {
         const side = this.props.side;
         const color = this.props.color;
+        const thickness = this.props.thickness;
 
         return (
             <button
@@ -17,7 +18,7 @@ export default class Brush extends Component {
                 <Icon
                     side={side}
                     color={color}
-                    image={(new BrushImage(side, color)).draw()}
+                    image={(new ThicknessImage(side, color, thickness)).draw()}
                 />
             </button>
         );

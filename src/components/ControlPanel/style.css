@@ -1,6 +1,11 @@
 .container {
     margin: auto;
-    /* border: 1px solid blue; */
+    border-bottom: 1px solid Transparent;
+    border-right: 1px solid Transparent;
+    border-left: 1px solid Transparent;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    overflow: hidden;
     position: fixed;
     left: 50%;
 }

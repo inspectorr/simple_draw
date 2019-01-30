@@ -15,13 +15,13 @@ class App extends Component {
         },
 
         controlPanel: {
-            height: 100,
+            height: 70,
             // width:  500,
             orientation: 'portrait',
 
             brush: {
-                color: 'pink',
-                thickness: 7,
+                color: 'blue',
+                thickness: 2,
                 opacity: 100
             },
         },

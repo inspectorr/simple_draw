@@ -6,9 +6,10 @@ export default class Icon extends PureComponent {
         const side = this.props.side;
 
         // бэкграунд иконки
-        ctx.fillStyle = this.props.color;
+        // ctx.fillStyle = this.props.color;
+        ctx.fillStyle = '#eee';
         ctx.fillRect(0, 0, side, side);
-        
+
         // изображение на иконке
         ctx.drawImage(this.props.image, 0, 0);
     }
