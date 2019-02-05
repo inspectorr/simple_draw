@@ -11,12 +11,13 @@ export default class Color extends Component {
 
         return (
             <button
-                onClick={() => alert('ux')}
+                onClick={() => this.props.onClick()}
                 style={{width:`${side}px`, height:`${side}px`}}
             >
                 <Icon
                     side={side}
-                    color={color}
+                    bgColor={this.props.bgColor}
+                    color={this.props.color}
                     image={(new ColorImage(side, color)).draw()}
                 />
             </button>

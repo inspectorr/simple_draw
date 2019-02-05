@@ -18,9 +18,12 @@ export default class Canvas extends Component {
     }
 
     printServiceLog() {
-        console.log(`\nINPUT CAPTURED:`,
-            `line-${this.state.inputedLines.length}`,
-            `points:${this.state.currentInputLinePoints.length}`
+        const N = this.state.history.length;
+        console.log(
+            `\nINPUT CAPTURED:`,
+            `line-${N}`,
+            `points:${this.state.currentInputLinePoints.length}`,
+            `color:${this.state.history[N-1].color}`,
         );
         console.log('points =', this.state.currentInputLinePoints);
     }
@@ -34,7 +37,7 @@ export default class Canvas extends Component {
         brush: Object.assign([], this.props.panelProps.brush),
 
         buffer: [],
-        inputedLines: [], // история входных линий
+        history: [], // история входных линий
         currentInputLinePoints: [], // точки текущей входной линии
     }
 
@@ -85,9 +88,12 @@ export default class Canvas extends Component {
 
     addCurrentInputLine(currentInputLinePoints) {
         const inputPoints = currentInputLinePoints.slice();
-        const inputedLines = this.state.inputedLines.slice();
-        inputedLines.push(inputPoints);
-        this.setState({ inputedLines });
+        const history = this.state.history.slice();
+        history.push({
+            points: inputPoints,
+            color: this.props.panelProps.brush.color,
+        });
+        this.setState({ history });
     }
 
     UPDATE() {
@@ -140,31 +146,14 @@ export default class Canvas extends Component {
         ctx.restore();
     }
 
-    // drawLines(points) {
-    //     const ctx = this.refs.canvas.getContext('2d');
-    //     const brush = this.props.panelProps.brush;
-    //
-    //     ctx.save();
-    //     ctx.strokeStyle = 'black';
-    //     ctx.lineWidth = `${brush.thickness}`;
-    //     ctx.lineJoin = 'round';
-    //     ctx.lineCap = 'round';
-    //     ctx.beginPath();
-    //     ctx.moveTo(points[0].x, points[0].y);
-    //     for (let i = 1; i < points.length; i++) {
-    //         ctx.lineTo(points[i].x, points[i].y);
-    //     }
-    //     ctx.stroke();
-    //     ctx.restore();
-    // }
-
     drawPoint(x, y) {
         const canvas = this.refs.canvas;
         const ctx = canvas.getContext('2d');
         const brush = this.props.panelProps.brush;
 
         ctx.save();
-        ctx.fillStyle = 'red';
+        // ctx.fillStyle = 'red';
+        ctx.fillStyle = brush.color;
         ctx.beginPath();
         ctx.arc(x, y, brush.thickness / 2, 0, Math.PI*2);
         ctx.fill();
@@ -174,6 +163,7 @@ export default class Canvas extends Component {
     render() {
         return (
             <canvas
+                id='canvas'
                 width={this.props.width}
                 height={this.props.height}
                 ref='canvas'

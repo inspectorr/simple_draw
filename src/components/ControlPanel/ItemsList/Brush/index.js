@@ -16,8 +16,10 @@ export default class Brush extends Component {
             >
                 <Icon
                     side={side}
-                    color={color}
+                    bgColor={this.props.bgColor}
+                    color={this.props.color}
                     image={(new BrushImage(side, color)).draw()}
+                    pressed={this.props.pressed}
                 />
             </button>
         );

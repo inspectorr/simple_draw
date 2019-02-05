@@ -10,63 +10,63 @@ export default class ControlPanel extends Component {
     // центрированная панель с произвольным количеством элементов
     state = {
         items: [
+            {
+                key: 'Brush',
+                component: Brush,
+                pressed: false,
+            },
 
-            <li key={0}>
-                <Brush
-                    side={this.props.panelProps.height}
-                    panelProps={this.props.panelProps}
-                    color={this.props.panelProps.brush.color}
-                />
-            </li>,
+            {
+                key: 'Color',
+                component: Color,
+                onClick: () => {
+                    if (!this.props.app.palette.open) this.props.openPalette();
+                    else this.props.closePalette();
+                },
+                pressed: false,
+            },
 
-            <li key={1}>
-                <Color
-                    side={this.props.panelProps.height}
-                    panelProps={this.props.panelProps}
-                    color={this.props.panelProps.brush.color}
-                />
-            </li>,
+            {
+                key: 'Thickness',
+                component: Thickness,
+                pressed: false,
+            }
+        ]
+    }
 
-            <li key={2}>
-                <Thickness
-                    side={this.props.panelProps.height}
-                    panelProps={this.props.panelProps}
-                    color={this.props.panelProps.brush.color}
-                    thickness={this.props.panelProps.brush.thickness}
-                />
-            </li>,
-            
-        ],
+    componentDidUpdate(){
+        console.log('panel updated');
     }
 
     render() {
-        const items = this.state.items;
-        const panelProps = this.props.panelProps;
-        const N = items.length;
+        const settings = {
+            side: this.props.panelProps.height,
+            color: this.props.panelProps.brush.color,
+            thickness: this.props.panelProps.brush.thickness,
+            bgColor: this.props.bgColor
+        }
 
-        // сторона квадратного элемента равна заданной высоте панели
+        // сторона кнопки равна заданной высоте панели
         const side = this.props.height;
-
-        // ширина панели равна количеству элементов на их сторону
-        const width = N * side;
 
         return (
             <div
-                className={'container'}
+                key={'container'}
+                id={'container'}
                 style={{
                     // позиционирование панели
-                    width: `${width}px`,
+                    width: `${this.props.width}px`,
                     height: `${side}px`,
-                    marginLeft: `${-width/2}px`
+                    backgroundColor: `${this.props.bgColor}`
+                    // marginLeft: `${-width/2}px`
                 }}
             >
                 <ItemsList
-                    side={side}
-                    panelProps={panelProps}
                     items={this.state.items}
-                    itemSideLength={side}
+                    settings={settings}
                 />
             </div>
+
         );
     }
 }

@@ -17,7 +17,8 @@ export default class Thickness extends Component {
             >
                 <Icon
                     side={side}
-                    color={color}
+                    bgColor={this.props.bgColor}
+                    color={this.props.color}
                     image={(new ThicknessImage(side, color, thickness)).draw()}
                 />
             </button>
