@@ -2,10 +2,23 @@ import React, { Component } from 'react';
 import './style.css';
 
 export default class Palette extends Component {
+    constructor(props) {
+        super(props);
+
+        const R = 5*Math.min(this.props.width, this.props.height)*0.5 / 6;
+        const r = 2*R / 3;
+
+        this.state = {
+            R,
+            r,
+        };
+    }
+
     componentDidMount() {
-        const canvas = this.refs.canvas;
         this.draw();
+        const canvas = this.refs.canvas;
         const self = this;
+
         // компьютерное управление
         canvas.addEventListener('click', function(event){
             const width = self.props.width;
@@ -13,8 +26,9 @@ export default class Palette extends Component {
 
             const colors = self.props.colors;
             const N = colors.length;
-            const R = Math.min(width, height) / 3;
-            const r = 2*R / 3;
+
+            const R = self.state.R;
+            const r = self.state.r;
 
             let {clientX:x, clientY:y} = event;
             y -= self.props.panelProps.height;
@@ -30,17 +44,15 @@ export default class Palette extends Component {
                 return;
             }
 
-
-            // выбор цвета
+            // выбор цветового сегмента по углу от центра
             let fi = Math.atan2(x, y) / (Math.PI/180);
             fi = fi < 0 ? 360+fi : fi;
             const k = Math.floor(N*fi/360)
-
             const color = colors[k];
             self.props.setBrushColor(color);
+
             self.props.closePalette();
         });
-
 
     }
 
@@ -61,49 +73,48 @@ export default class Palette extends Component {
     draw() {
         const self = this;
         const ctx = this.refs.canvas.getContext('2d');
+
         const width = this.props.width;
         const height = this.props.height;
 
         const colors = this.props.colors;
         const N = colors.length;
-        const R = Math.min(width, height) / 3;
-        const r = 2*R / 3;
-
-        // начало координат в центре круга
-        ctx.translate(width/2, height/2);
+        const R = this.state.R;
+        const r = this.state.r;
 
         // фон
-        let bgColor = this.props.bgColor.slice(1)
-        let bgR = parseInt(bgColor.slice(0, 2), 16);
-        let bgG = parseInt(bgColor.slice(2, 4), 16);
-        let bgB = parseInt(bgColor.slice(4, 6), 16);
+        this.refs.bg.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
         this.animate({
             duration: 200,
             timing: (timeFraction) => Math.pow(timeFraction, 2),
             draw: function slide(progress) {
-                self.refs.bg.style.backgroundColor = `rgba(${bgR}, ${bgG}, ${bgB}, ${1/2})`;
+                if (!self.refs.bg) return;
                 self.refs.bg.style.top =
                     self.props.panelProps.height -
-                    self.props.height + self.props.height*progress +'px';
+                    self.props.height + self.props.height*progress + 'px';
             }
         });
 
+
+
         // сектора палитры
-        let sector = 0;
+        let lastDrawedSector = -1;
         let angle = 2*Math.PI / N;
         let start = -Math.PI/2;
+
+        // начало координат в центре круга
+        ctx.translate(width/2, height/2);
+
         setTimeout(() => this.animate({
             duration: 150,
             timing: (timeFraction) => Math.pow(timeFraction, 2),
             draw: function appear(progress) {
-                // console.log(sector, progress);
-                if (progress < sector/N) return;
-                if (progress === 1) sector = N-1;
+                // текущий
+                let sector = Math.ceil(N*progress)-1;
 
-                // круг с цветами
-                ctx.save();
-                for (let k = 0; k <= sector; k++) {
-                    ctx.fillStyle = colors[k];
+                // рисование секторов от последнего нарисованного до текущего
+                for (let i = lastDrawedSector + 1; i <= sector; i++) {
+                    ctx.fillStyle = colors[i];
 
                     ctx.beginPath();
                     ctx.arc(0, 0, R, start, start+angle, false);
@@ -113,19 +124,9 @@ export default class Palette extends Component {
 
                     // поворот, следующий сектор
                     ctx.rotate(angle);
-
                 }
 
-                ctx.restore();
-
-                // центральный круг
-                // ctx.save();
-                // ctx.fillStyle = self.props.panelProps.brush.color;
-                // ctx.arc(0, 0, r, 0, 2*Math.PI);
-                // ctx.fill();
-                // ctx.restore();
-
-                sector++;
+                lastDrawedSector = sector;
             }
         }), 200);
     }
@@ -147,7 +148,6 @@ export default class Palette extends Component {
                 ref='canvas'
                 height={this.props.height}
                 width={this.props.width}
-                // style={{top: this.props.panelProps.height}}
             >
             </canvas>
             </div>

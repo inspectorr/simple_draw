@@ -1,12 +1,10 @@
 #palette {
     position: relative;
-    /* top: 0; */
     left: 0;
 }
 
 #bg {
     z-index: 1;
     position: fixed;
-    /* top: 0; */
     left: 0;
 }

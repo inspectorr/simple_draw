@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-
 function muteColor(color) {
     color = color.slice(1);
     let r = parseInt(color.slice(0, 2), 16);
@@ -9,14 +8,12 @@ function muteColor(color) {
     return `rgb(${r*0.8}, ${g*0.8}, ${b*0.8})`;
 }
 
-
 export default class Icon extends Component {
     draw() {
         const ctx = this.refs.canvas.getContext('2d');
         const side = this.props.side;
 
         // бэкграунд иконки
-        // ctx.fillStyle = this.props.color;
         const bgColor = this.props.pressed ? muteColor(this.props.bgColor) : this.props.bgColor;
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, side, side);

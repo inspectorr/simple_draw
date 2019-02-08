@@ -4,6 +4,9 @@ import BrushImage from '../images/BrushImage';
 import Icon from '../Icon';
 
 export default class Brush extends Component {
+    state = {
+        pressed: this.props.pressed,
+    }
 
     render() {
         const side = this.props.side;
@@ -11,7 +14,9 @@ export default class Brush extends Component {
 
         return (
             <button
-                onClick={() => alert('ux')}
+                onClick={() => {
+                    this.setState({pressed: !this.state.pressed});
+                }}
                 style={{width:`${side}px`, height:`${side}px`}}
             >
                 <Icon
@@ -19,7 +24,7 @@ export default class Brush extends Component {
                     bgColor={this.props.bgColor}
                     color={this.props.color}
                     image={(new BrushImage(side, color)).draw()}
-                    pressed={this.props.pressed}
+                    pressed={this.state.pressed}
                 />
             </button>
         );

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './style.css';
 
-
 export default class Canvas extends Component {
     setDrawingMode() {
         const mode = {active: 'draw'};
@@ -11,7 +10,7 @@ export default class Canvas extends Component {
     setNoneMode() {
         const mode = {active: 'none'};
         this.setState({
-            mode: mode,
+            mode,
             buffer: [],
             currentInputLinePoints: [],
         });
@@ -24,6 +23,7 @@ export default class Canvas extends Component {
             `line-${N}`,
             `points:${this.state.currentInputLinePoints.length}`,
             `color:${this.state.history[N-1].color}`,
+            `thickness:${this.state.history[N-1].thickness}`,
         );
         console.log('points =', this.state.currentInputLinePoints);
     }
@@ -41,39 +41,132 @@ export default class Canvas extends Component {
         currentInputLinePoints: [], // точки текущей входной линии
     }
 
-    componentDidMount() { // установка обработчиков на готовый canvas
+    componentDidMount() {
         const canvas = this.refs.canvas;
+
+        // белый фон
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, this.props.width, this.props.height);
+        ctx.restore();
+
         const self = this;
         const coords = canvas.getBoundingClientRect();
 
-        // компьютерное управление
-        canvas.onmousedown = function drag(event) {
+        function startInput(x, y) {
             console.log('\nINPUT STARTED\n');
             self.setDrawingMode();
-            const x = event.pageX - coords.left;
-            const y = event.pageY - coords.top;
             self.addPointToCurrentInputLine(x, y);
-            self.drawPoint(x, y);// self.UPDATE();
+            self.drawPoint(x, y);
+        }
 
-            canvas.onmousemove = function move(event) {
-                self.addPointToCurrentInputLine(
+        function moveTo(x, y) {
+            self.addPointToCurrentInputLine(x, y);
+            self.UPDATE();
+        }
+
+        // закрываем слайдер и ничего не рисем, если произошел единичный тап
+        let closingSliderOnSingleTap;
+
+        // компьютерное управление
+        canvas.addEventListener('mousedown', onMouseDown);
+
+        function onMouseDown(event) {
+            if (self.props.app.thicknessSlider.open) {
+                closingSliderOnSingleTap = true;
+            } else {
+                startInput(
                     event.pageX - coords.left,
                     event.pageY - coords.top
                 );
-                self.UPDATE();
-            };
+            }
 
-            canvas.onmouseup = function drop(event) {
-                self.addCurrentInputLine(self.state.currentInputLinePoints);
-
-                // cлужебная информация в консоль
-                self.printServiceLog();
-
-                self.setNoneMode();
-
-                canvas.onmousemove = canvas.onmouseup = null;
-            };
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
         };
+
+        function onMouseMove(event) {
+            closingSliderOnSingleTap = false;
+
+            if (self.props.app.thicknessSlider.open) {
+                self.props.closeSlider();
+            }
+
+            moveTo(
+                event.pageX - coords.left,
+                event.pageY - coords.top
+            );
+        };
+
+        function onMouseUp(event) {
+            if (closingSliderOnSingleTap) {
+                self.props.closeSlider();
+                canvas.removeEventListener('mousemove', onMouseMove);
+                canvas.removeEventListener('mouseup', onMouseUp);
+                return;
+            };
+
+            self.addLineToHistory(self.state.currentInputLinePoints);
+
+            // cлужебная информация в консоль
+            self.printServiceLog();
+
+            self.setNoneMode();
+            canvas.removeEventListener('mousemove', onMouseMove);
+            canvas.removeEventListener('mouseup', onMouseUp);
+        };
+
+        // управление на мобильных устройствах
+        canvas.addEventListener('touchstart', onTouchStart);
+
+        function onTouchStart(event) {
+            event.preventDefault();
+            if (self.props.app.thicknessSlider.open) {
+                closingSliderOnSingleTap = true;
+            } else {
+                startInput(
+                    event.targetTouches[0].pageX - coords.left,
+                    event.targetTouches[0].pageY - coords.top
+                );
+            }
+
+            canvas.addEventListener('touchmove', onTouchMove);
+            canvas.addEventListener('touchend', onTouchEnd);
+        }
+
+        function onTouchMove(event) {
+            event.preventDefault();
+            closingSliderOnSingleTap = false;
+            if (self.props.app.thicknessSlider.open) {
+                self.props.closeSlider();
+            }
+            moveTo(
+                event.targetTouches[0].pageX - coords.left,
+                event.targetTouches[0].pageY - coords.top
+            );
+        }
+
+        function onTouchEnd(event) {
+            event.preventDefault();
+
+            if (closingSliderOnSingleTap) {
+                self.props.closeSlider();
+                canvas.removeEventListener('mousemove', onMouseMove);
+                canvas.removeEventListener('mouseup', onMouseUp);
+                return;
+            };
+
+            self.addLineToHistory(self.state.currentInputLinePoints);
+
+            // cлужебная информация в консоль
+            self.printServiceLog();
+
+            self.setNoneMode();
+
+            canvas.removeEventListener('touchmove', onTouchMove);
+            canvas.removeEventListener('touchend', onTouchEnd);
+        }
     }
 
     addPointToCurrentInputLine(x, y) {
@@ -86,12 +179,13 @@ export default class Canvas extends Component {
         this.setState({ currentInputLinePoints, buffer });
     }
 
-    addCurrentInputLine(currentInputLinePoints) {
+    addLineToHistory(currentInputLinePoints) {
         const inputPoints = currentInputLinePoints.slice();
         const history = this.state.history.slice();
         history.push({
             points: inputPoints,
             color: this.props.panelProps.brush.color,
+            thickness: this.props.panelProps.brush.thickness
         });
         this.setState({ history });
     }
@@ -101,13 +195,8 @@ export default class Canvas extends Component {
         const N = buffer.length;
         const brush = this.props.panelProps.brush;
 
-        // const {x, y} = buffer[N-1];
-        // this.drawPoint(x, y);
-
         if (N < 4) return;
         this.setState({ buffer: [].concat(buffer[N-1]) });
-
-        // this.drawCurve(buffer);
 
         let dxMax = 0, dyMax = 0;
         for (let i = 0; i < N-1; i++) {
@@ -149,6 +238,7 @@ export default class Canvas extends Component {
     drawPoint(x, y) {
         const canvas = this.refs.canvas;
         const ctx = canvas.getContext('2d');
+
         const brush = this.props.panelProps.brush;
 
         ctx.save();
@@ -164,9 +254,9 @@ export default class Canvas extends Component {
         return (
             <canvas
                 id='canvas'
+                ref='canvas'
                 width={this.props.width}
                 height={this.props.height}
-                ref='canvas'
             ></canvas>
         )
     }
