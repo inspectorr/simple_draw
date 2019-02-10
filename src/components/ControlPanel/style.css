@@ -3,3 +3,19 @@
     position: relative;
     z-index: 1000;
 }
+
+button {
+    position: relative;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    overflow: hidden;
+    background-color: Transparent;
+    background-repeat: no-repeat;
+}
+
+button canvas {
+    postion: absolute;
+    top: 0;
+    left: 0;
+}

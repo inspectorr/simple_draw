@@ -1,52 +1,76 @@
 import React, { Component } from 'react';
 import './style.css';
 
-import ItemsList from './ItemsList';
-import Brush from './ItemsList/Brush';
-import Color from './ItemsList/Color';
-import Thickness from './ItemsList/Thickness';
+import Button from './Button';
+
+import BrushImage from './images/BrushImage';
+import ColorImage from './images/ColorImage';
+import ThicknessImage from './images/ThicknessImage';
+import EraserImage from './images/EraserImage';
+import UndoImage from './images/UndoImage';
 
 export default class ControlPanel extends Component {
-    
+
     render() {
         const settings = {
             side: this.props.panelProps.height,
             color: this.props.panelProps.brush.color,
             thickness: this.props.panelProps.brush.thickness,
-            bgColor: this.props.bgColor
+            bgColor: this.props.bgColor,
+            mode: this.props.app.mode
         }
 
-        const side = this.props.height;
-
         const items = [
-            <Brush
+            <Button
                 key='Brush'
-                pressed={false}
+                image={BrushImage}
+                pressed={this.props.app.mode === 'draw'}
+                onClick={() => this.props.setDrawMode()}
                 {...settings}
             />,
 
-            <Color
+            <Button
                 key='Color'
+                image={ColorImage}
+                pressed={this.props.app.palette.open}
                 onClick={() => {
                     if (!this.props.app.palette.open) {
                         this.props.openPalette();
                     } else this.props.closePalette();
                 }}
-                pressed={this.props.app.palette.open}
                 {...settings}
             />,
 
-            <Thickness
+            <Button
                 key='Thickness'
+                image={ThicknessImage}
+                pressed={this.props.app.thicknessSlider.open}
                 onClick={() => {
                     if (!this.props.app.thicknessSlider.open) {
                         this.props.openSlider();
                     } else this.props.closeSlider();
                 }}
-                pressed={this.props.app.thicknessSlider.open}
+                {...settings}
+            />,
+
+            <Button
+                key='Earser'
+                image={EraserImage}
+                pressed={this.props.app.mode === 'erase'}
+                onClick={() => this.props.setEraseMode()}
+                {...settings}
+            />,
+
+            <Button
+                key='Undo'
+                image={UndoImage}
+                pressed={false}
+                onClick={() => {this.props.undo()}}
                 {...settings}
             />,
         ]
+
+        const side = this.props.height;
 
         return (
             <div
@@ -58,13 +82,8 @@ export default class ControlPanel extends Component {
                     backgroundColor: `${this.props.bgColor}`
                 }}
             >
-
-                <ItemsList
-                    items={items}
-                />
-
+                {items}
             </div>
-
         );
     }
 }

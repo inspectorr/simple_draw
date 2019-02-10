@@ -25,7 +25,8 @@ export default class ThicknessSlider extends Component {
             document.addEventListener('mouseup', onDocumentMouseUp);
         });
 
-        thumb.addEventListener('touchstart', function(event) {
+        document.addEventListener('touchstart', function(event) {
+            if (!event.target.closest('.slider__bg')) return;
             startDrag(event.targetTouches[0].clientX);
             document.addEventListener('touchmove', onDocumentTouchMove);
             document.addEventListener('touchend', onDocumentTouchEnd);
@@ -117,9 +118,12 @@ export default class ThicknessSlider extends Component {
                 className='slider__bg'
                 ref='slider'
                 style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    backgroundColor: 'rgba(222, 222, 222, 0.5)',
                     width: this.props.width + 'px',
-                    height: this.props.height + 'px'
+                    height: this.props.height + 'px',
+                    marginLeft: -this.props.width/2 + 'px',
+                    borderBottomLeftRadius: 0.1*this.props.height + 'px',
+                    borderBottomRightRadius: 0.1*this.props.height + 'px',
                 }}
             >
                 <div

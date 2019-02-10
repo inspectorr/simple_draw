@@ -2,18 +2,12 @@ import React, { Component } from 'react';
 import './style.css';
 
 export default class Canvas extends Component {
-    setDrawingMode() {
-        const mode = {active: 'draw'};
-        this.setState({ mode });
-    }
+    state = {
+        brush: Object.assign({}, this.props.panelProps.brush),
 
-    setNoneMode() {
-        const mode = {active: 'none'};
-        this.setState({
-            mode,
-            buffer: [],
-            currentInputLinePoints: [],
-        });
+        buffer: [],
+        history: [],
+        currentInputLinePoints: [],
     }
 
     printServiceLog() {
@@ -26,19 +20,6 @@ export default class Canvas extends Component {
             `thickness:${this.state.history[N-1].thickness}`,
         );
         console.log('points =', this.state.currentInputLinePoints);
-    }
-
-    state = {
-        mode: {
-            active: 'none',
-            store: ['none', 'draw', 'earse']
-        },
-
-        brush: Object.assign([], this.props.panelProps.brush),
-
-        buffer: [],
-        history: [], // история входных линий
-        currentInputLinePoints: [], // точки текущей входной линии
     }
 
     componentDidMount() {
@@ -56,23 +37,58 @@ export default class Canvas extends Component {
 
         function startInput(x, y) {
             console.log('\nINPUT STARTED\n');
-            self.setDrawingMode();
+
             self.addPointToCurrentInputLine(x, y);
-            self.drawPoint(x, y);
+
+            let {color, thickness} = self.props.app.controlPanel.brush;
+            if (self.props.app.mode === 'erase') color = '#fff';
+
+            self.drawPoint(x, y, color, thickness);
         }
 
         function moveTo(x, y) {
             self.addPointToCurrentInputLine(x, y);
-            self.UPDATE();
+
+            let {color, thickness} = self.props.app.controlPanel.brush;
+            if (self.props.app.mode === 'erase') color = '#fff';
+
+            const buffer = self.state.buffer.slice();
+
+            if (buffer.length>=4) {
+                self.UPDATE(buffer, color, thickness);
+                self.setState({ buffer: [].concat(buffer[buffer.length-1]) });
+            }
         }
 
-        // закрываем слайдер и ничего не рисем, если произошел единичный тап
+        function endInput() {
+            let {color, thickness} = self.props.app.controlPanel.brush;
+            if (self.props.app.mode === 'erase') color = '#fff';
+
+            self.addLineToHistory(
+                self.state.currentInputLinePoints,
+                color,
+                thickness
+            );
+
+            // cлужебная информация в консоль
+            self.printServiceLog();
+
+            self.setState({
+                buffer: [],
+                currentInputLinePoints: [],
+            });
+        }
+
+        // если произошел единичный тап по холсту,
+        // будем закрывать слайдер, не обрабатывая точку
+        // для этого...
         let closingSliderOnSingleTap;
 
         // компьютерное управление
         canvas.addEventListener('mousedown', onMouseDown);
 
         function onMouseDown(event) {
+            // ...при нажатии проверяем, открыт ли слайдер
             if (self.props.app.thicknessSlider.open) {
                 closingSliderOnSingleTap = true;
             } else {
@@ -87,6 +103,7 @@ export default class Canvas extends Component {
         };
 
         function onMouseMove(event) {
+            // если движение началось, закрываем слайдер и рисуем
             closingSliderOnSingleTap = false;
 
             if (self.props.app.thicknessSlider.open) {
@@ -100,6 +117,7 @@ export default class Canvas extends Component {
         };
 
         function onMouseUp(event) {
+            // если движения не было, просто закрываем слайдер и всё
             if (closingSliderOnSingleTap) {
                 self.props.closeSlider();
                 canvas.removeEventListener('mousemove', onMouseMove);
@@ -107,12 +125,8 @@ export default class Canvas extends Component {
                 return;
             };
 
-            self.addLineToHistory(self.state.currentInputLinePoints);
+            endInput();
 
-            // cлужебная информация в консоль
-            self.printServiceLog();
-
-            self.setNoneMode();
             canvas.removeEventListener('mousemove', onMouseMove);
             canvas.removeEventListener('mouseup', onMouseUp);
         };
@@ -157,12 +171,7 @@ export default class Canvas extends Component {
                 return;
             };
 
-            self.addLineToHistory(self.state.currentInputLinePoints);
-
-            // cлужебная информация в консоль
-            self.printServiceLog();
-
-            self.setNoneMode();
+            endInput();
 
             canvas.removeEventListener('touchmove', onTouchMove);
             canvas.removeEventListener('touchend', onTouchEnd);
@@ -179,25 +188,54 @@ export default class Canvas extends Component {
         this.setState({ currentInputLinePoints, buffer });
     }
 
-    addLineToHistory(currentInputLinePoints) {
-        const inputPoints = currentInputLinePoints.slice();
+    addLineToHistory(currentInputLinePoints, color, thickness) {
+        const points = currentInputLinePoints.slice();
         const history = this.state.history.slice();
         history.push({
-            points: inputPoints,
-            color: this.props.panelProps.brush.color,
-            thickness: this.props.panelProps.brush.thickness
+            points,
+            color,
+            thickness
         });
         this.setState({ history });
     }
 
-    UPDATE() {
-        const buffer = this.state.buffer.slice();
+    undo() {
+        console.log('REDRAWING TO STEP ' + (this.state.history.length-1));
+        const ctx = this.refs.canvas.getContext('2d');
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, this.props.width, this.props.height);
+
+        if (this.state.history.length === 0) return;
+
+        const history = this.state.history.slice();
+        history.pop();
+        this.setState({ history });
+
+        history.forEach((stage) => {
+            ctx.save();
+
+            let buffer = [];
+            stage.points.forEach((point) => {
+                // let buffer = this.state.buffer.slice();
+                buffer.push(point);
+                if (buffer.length === 1) {
+                    this.drawPoint(point.x, point.y, stage.color, stage.thickness);
+                }
+                if (buffer.length >= 4) {
+                    this.UPDATE(buffer, stage.color, stage.thickness);
+                    buffer = [].concat(buffer[buffer.length-1]);
+                }
+            });
+
+            ctx.restore();
+        });
+
+        this.setState({ buffer: [] });
+    }
+
+    UPDATE(buffer, color, thickness) {
         const N = buffer.length;
-        const brush = this.props.panelProps.brush;
-
-        if (N < 4) return;
-        this.setState({ buffer: [].concat(buffer[N-1]) });
-
         let dxMax = 0, dyMax = 0;
         for (let i = 0; i < N-1; i++) {
             const {x:x1, y:y1} = buffer[i];
@@ -208,22 +246,25 @@ export default class Canvas extends Component {
             if (dy > dyMax) dyMax = dy;
         }
 
-        if (dxMax > brush.thickness / 2 || dyMax > brush.thickness / 2) {
-            this.drawCurve(buffer);
+        if (dxMax > thickness / 2 || dyMax > thickness / 2) {
+            this.drawCurve(buffer, color, thickness);
         } else {
-            buffer.forEach((point) => this.drawPoint(point.x, point.y));
+            buffer.forEach((point) => {
+                this.drawPoint(
+                    point.x, point.y, color, thickness
+                );
+            });
         }
     }
 
-    drawCurve(points) { // кривая Безье по четырем точкам
+    drawCurve(points, color, thickness) { // кривая Безье по четырем точкам
         const ctx = this.refs.canvas.getContext('2d');
-        const brush = this.props.panelProps.brush;
 
-        ctx.save();
-        ctx.strokeStyle = `${brush.color}`;
-        ctx.lineWidth = `${brush.thickness}`;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = thickness;
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
+
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         ctx.bezierCurveTo(
@@ -232,22 +273,17 @@ export default class Canvas extends Component {
             points[3].x, points[3].y
         );
         ctx.stroke();
-        ctx.restore();
     }
 
-    drawPoint(x, y) {
+    drawPoint(x, y, color, thickness) {
         const canvas = this.refs.canvas;
         const ctx = canvas.getContext('2d');
 
-        const brush = this.props.panelProps.brush;
+        ctx.fillStyle = color;
 
-        ctx.save();
-        // ctx.fillStyle = 'red';
-        ctx.fillStyle = brush.color;
         ctx.beginPath();
-        ctx.arc(x, y, brush.thickness / 2, 0, Math.PI*2);
+        ctx.arc(x, y, thickness / 2, 0, Math.PI*2);
         ctx.fill();
-        ctx.restore();
     }
 
     render() {
@@ -258,7 +294,7 @@ export default class Canvas extends Component {
                 width={this.props.width}
                 height={this.props.height}
             ></canvas>
-        )
+        );
     }
 
 }

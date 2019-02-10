@@ -5,20 +5,7 @@ import ControlPanel from './ControlPanel';
 import Palette from './Palette';
 import ThicknessSlider from './ThicknessSlider';
 
-function reverseColor(color) {
-    color = color.slice(1);
-    let r = parseInt(color.slice(0, 2), 16);
-    let g = parseInt(color.slice(2, 4), 16);
-    let b = parseInt(color.slice(4, 6), 16);
-    r = (255 - r).toString(16);
-    g = (255 - g).toString(16);
-    b = (255 - b).toString(16);
-    r = r.length < 2 ? '0' + r : r;
-    g = g.length < 2 ? '0' + g : g;
-    b = b.length < 2 ? '0' + b : b;
-    return `#${r}${g}${b}`;
-}
-
+import { reverseColor } from '../colorFunctions';
 
 const {clientWidth, clientHeight} = document.documentElement;
 
@@ -26,7 +13,11 @@ class App extends Component {
     constructor(props) {
         super(props);
 
+        this.canvas = React.createRef();
+
         this.state = {};
+
+        this.state.mode = 'draw';
 
         this.state.window = {
             height: clientHeight,
@@ -34,7 +25,7 @@ class App extends Component {
         };
 
         this.state.controlPanel = {
-            height: 0.1*this.state.window.height,
+            height: Math.floor(0.1*this.state.window.height),
 
             brush: {
                 color: '#ffaaaa',
@@ -67,6 +58,19 @@ class App extends Component {
         this.state.thicknessSlider = {
             open: false,
         };
+    }
+
+    undo() {
+        this.canvas.current.undo();
+    }
+
+    setDrawMode() {
+        this.setState({ mode: 'draw' });
+    }
+
+    setEraseMode() {
+        // this.setBrushColor('#ffffff');
+        this.setState({ mode: 'erase' });
     }
 
     componentDidMount() {
@@ -118,10 +122,6 @@ class App extends Component {
         this.setState({controlPanel});
     }
 
-    // componentDidUpdate() {
-    //     console.log(this.state);
-    // }
-
     render() {
         const canvasHeight = this.state.window.height-this.state.controlPanel.height;
         const bgColor = reverseColor(this.state.controlPanel.brush.color);
@@ -136,14 +136,22 @@ class App extends Component {
             bgColor={bgColor}
 
             app={this.state}
+
             openPalette={() => this.openPalette()}
             closePalette={() => this.closePalette()}
+
             openSlider={() => this.openSlider()}
             closeSlider={() => this.closeSlider()}
-        />;
+
+            setDrawMode={() => this.setDrawMode()}
+            setEraseMode={() => this.setEraseMode()}
+
+            undo={() => this.undo()}
+          />;
 
         let canvas = <Canvas
             key='Canvas'
+            ref={this.canvas}
             panelProps={this.state.controlPanel}
             width={this.state.window.width}
             height={canvasHeight}
@@ -176,7 +184,7 @@ class App extends Component {
         if (this.state.thicknessSlider.open) {
             thicknessSlider = <ThicknessSlider
                 key='ThicknessSlider'
-                width={this.state.window.width}
+                width={this.state.controlPanel.height*4}
                 height={this.state.controlPanel.height}
                 panelProps={this.state.controlPanel}
                 bgColor={bgColor}

@@ -83,7 +83,7 @@ export default class Palette extends Component {
         const r = this.state.r;
 
         // фон
-        this.refs.bg.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+        this.refs.bg.style.backgroundColor = 'rgba(222, 222, 222, 0.5)';
         this.animate({
             duration: 200,
             timing: (timeFraction) => Math.pow(timeFraction, 2),
@@ -94,8 +94,6 @@ export default class Palette extends Component {
                     self.props.height + self.props.height*progress + 'px';
             }
         });
-
-
 
         // сектора палитры
         let lastDrawedSector = -1;
