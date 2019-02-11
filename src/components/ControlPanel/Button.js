@@ -5,7 +5,7 @@ function muteColor(color) {
     let r = parseInt(color.slice(0, 2), 16);
     let g = parseInt(color.slice(2, 4), 16);
     let b = parseInt(color.slice(4, 6), 16);
-    return `rgb(${r*0.8}, ${g*0.8}, ${b*0.8})`;
+    return `rgb(${Math.floor(r*0.8)}, ${Math.floor(g*0.8)}, ${Math.floor(b*0.8)})`;
 }
 
 export default class Button extends Component {
@@ -59,11 +59,6 @@ export default class Button extends Component {
         const side = this.props.side;
 
         let canvas = <canvas ref='icon' width={side} height={side}></canvas>;
-
-        // // модификация кнопки для скачивания по ссылке
-        // if (this.props.href) {
-        //     canvas = <a href={this.props.href} download>{canvas}</a>;
-        // }
 
         return (
             <button

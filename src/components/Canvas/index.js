@@ -232,7 +232,6 @@ export default class Canvas extends Component {
 
             let buffer = [];
             stage.points.forEach((point) => {
-                // let buffer = this.state.buffer.slice();
                 buffer.push(point);
                 if (buffer.length === 1) {
                     this.drawPoint(point.x, point.y, stage.color, stage.thickness);
@@ -246,6 +245,7 @@ export default class Canvas extends Component {
             ctx.restore();
         });
 
+        this.sendURL();
         this.setState({ buffer: [] });
     }
 

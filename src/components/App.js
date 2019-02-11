@@ -37,7 +37,7 @@ class App extends Component {
         };
 
         const N = 6;
-        let controlPanelHeight = Math.floor(0.1*clientHeight);
+        let controlPanelHeight = Math.floor(0.11*clientHeight);
         if (controlPanelHeight > clientWidth / N) controlPanelHeight = clientWidth / N;
 
         this.state.controlPanel = {
@@ -55,21 +55,31 @@ class App extends Component {
 
         this.state.palette = {
             open: false,
+
+            // colors: [
+            //     '#000000',
+            //     '#501111',
+            //     '#336600',
+            //     '#000066',
+            //     '#ffffff',
+            //     '#afeeee',
+            //     '#cc99ff',
+            //     '#ffff99',
+            // ],
+
             colors: [
-                // https://colorscheme.ru/html-colors.html
-                // https://puzzleweb.ru/html/colors_html.php
-                '#000000', // черный
-                '#501111', // бордовый
-                '#CC9966',
-                '#ffff7f', // желтый
-                '#006600',
-                '#33CC99',
-                '#AFEEEE', // голубой
-                '#000066', // синий navy
-                '#CC99FF',
-                '#ffaaaa', // розовый
-                '#CC3366',
-                '#550055',
+                '#000000',
+                '#501111',
+                '#cc9966',
+                '#ffff99',
+                '#336600',
+                '#33cc99',
+                '#afeeee',
+                '#000066',
+                '#6633CC',
+                '#cc99ff',
+                '#ffaaaa',
+                '#cc3366',
             ],
         };
 

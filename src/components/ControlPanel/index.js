@@ -10,7 +10,6 @@ import EraserImage from './images/EraserImage';
 import UndoImage from './images/UndoImage';
 import DownloadImage from './images/DownloadImage';
 
-
 export default class ControlPanel extends Component {
     render() {
         const settings = {
@@ -58,7 +57,10 @@ export default class ControlPanel extends Component {
                 key='Earser'
                 image={EraserImage}
                 pressed={this.props.app.mode === 'erase'}
-                onClick={() => this.props.setEraseMode()}
+                onClick={() => {
+                    if (this.props.app.mode === 'erase') this.props.setDrawMode();
+                    else this.props.setEraseMode();
+                }}
                 {...settings}
             />,
 
@@ -73,7 +75,7 @@ export default class ControlPanel extends Component {
                 {...settings}
             />,
 
-        <a key='Download' href={this.props.canvasHref} download>
+            <a key='Download' href={this.props.canvasHref} download>
                 <Button
                     image={DownloadImage}
                     pressed={false}
@@ -95,7 +97,7 @@ export default class ControlPanel extends Component {
                     width: `${this.props.width}px`,
                     height: `${side}px`,
                     backgroundColor: `${bgColor}`,
-                    borderBottom: bgColor === '#ffffff' ? '0.05em solid black' : 'none', 
+                    borderBottom: bgColor === '#ffffff' ? '0.05em solid black' : 'none',
                 }}
             >
                 {items}
