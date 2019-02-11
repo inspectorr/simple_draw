@@ -132,7 +132,9 @@ export default class ThicknessSlider extends Component {
                     style={{
                         backgroundColor: this.props.bgColor,
                         height: sliderLineHeight + 'px',
-                        marginTop: -sliderLineHeight/2 + 'px'
+                        marginTop: -sliderLineHeight/2 + 'px',
+                        borderTop: this.props.bgColor === '#ffffff' ? '0.05em solid black' : 'none',
+                        borderBottom: this.props.bgColor === '#ffffff' ? '0.05em solid black' : 'none', 
                     }}
                 >
                     <div

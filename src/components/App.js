@@ -24,8 +24,12 @@ class App extends Component {
             width: clientWidth
         };
 
+        const N = 6;
+        let controlPanelHeight = Math.floor(0.1*clientHeight);
+        if (controlPanelHeight > clientWidth / N) controlPanelHeight = clientWidth / N;
+
         this.state.controlPanel = {
-            height: Math.floor(0.1*this.state.window.height),
+            height: controlPanelHeight,
 
             brush: {
                 color: '#ffaaaa',
@@ -34,22 +38,20 @@ class App extends Component {
                 maxThickness: 0.05*this.state.window.height,
                 opacity: 100,
             },
+
         };
 
         this.state.palette = {
             open: false,
             colors: [
                 // https://colorscheme.ru/html-colors.html
+                // https://puzzleweb.ru/html/colors_html.php
                 '#000000', // черный
-                '#8B0000', // бордовый
-                '#dd0000', // красный
-                '#FF4500', // оранжевый coral
-                '#ffff7f', // желтый
+                '#501111', // бордовый
                 '#ffaaaa', // розовый
-                '#006400', // темно-зеленый
-                '#228B22', // светло-зеленый
-                '#005555', // морская волна
-                '#1E90FF', // голубой dodger blue
+                '#ffff7f', // желтый
+                '#AFEEEE', // голубой
+                '#D294DA',
                 '#000080', // синий navy
                 '#4B0082', // фиолетовый indigo
             ],
@@ -58,6 +60,12 @@ class App extends Component {
         this.state.thicknessSlider = {
             open: false,
         };
+
+        this.state.canvasURL = null;
+    }
+
+    setCanvasURL(canvasURL) {
+        this.setState({ canvasURL });
     }
 
     undo() {
@@ -69,20 +77,21 @@ class App extends Component {
     }
 
     setEraseMode() {
-        // this.setBrushColor('#ffffff');
         this.setState({ mode: 'erase' });
     }
 
-    componentDidMount() {
-        const self = this;
-        window.addEventListener('resize', function(event) {
-            const {clientWidth, clientHeight} = document.documentElement;
-            let window = Object.assign({}, self.state.window);
-            window.width = clientWidth;
-            window.height = clientHeight;
-            self.setState({ window });
-        });
-    }
+    // ресайз более не предусмотрен, не понятно как при нем менять canvas!
+
+    // componentDidMount() {
+    //     const self = this;
+    //     window.addEventListener('resize', function(event) {
+    //         const {clientWidth, clientHeight} = document.documentElement;
+    //         let window = Object.assign({}, self.state.window);
+    //         window.width = clientWidth;
+    //         window.height = clientHeight;
+    //         self.setState({ window });
+    //     });
+    // }
 
     openPalette() {
         if (this.state.thicknessSlider.open) this.closeSlider();
@@ -126,6 +135,20 @@ class App extends Component {
         const canvasHeight = this.state.window.height-this.state.controlPanel.height;
         const bgColor = reverseColor(this.state.controlPanel.brush.color);
 
+        let canvas = <Canvas
+            key='Canvas'
+            ref={this.canvas}
+            panelProps={this.state.controlPanel}
+            width={this.state.window.width}
+            height={canvasHeight}
+
+            app={this.state}
+            closeSlider={() => this.closeSlider()}
+            setCanvasURL={this.setCanvasURL.bind(this)}
+
+
+        />;
+
         let controlPanel = <ControlPanel
             id='ControlPanel'
             key='ControlPanel'
@@ -147,17 +170,8 @@ class App extends Component {
             setEraseMode={() => this.setEraseMode()}
 
             undo={() => this.undo()}
-          />;
 
-        let canvas = <Canvas
-            key='Canvas'
-            ref={this.canvas}
-            panelProps={this.state.controlPanel}
-            width={this.state.window.width}
-            height={canvasHeight}
-
-            app={this.state}
-            closeSlider={() => this.closeSlider()}
+            canvasHref={this.state.canvasURL}
         />;
 
         let palette;
@@ -175,7 +189,7 @@ class App extends Component {
 
                 closePalette={() => this.closePalette()}
                 setBrushColor={(color) => this.setBrushColor(color)}
-            />
+            />;
         } else {
             palette = null;
         }
@@ -192,7 +206,7 @@ class App extends Component {
                 open={this.state.thicknessSlider.open}
                 closeSlider={() => this.closeSlider()}
                 setBrushThickness={(thickness) => this.setBrushThickness(thickness)}
-            />
+            />;
         } else {
             thicknessSlider = null;
         }

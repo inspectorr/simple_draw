@@ -21,8 +21,8 @@ export default class EraserImage {
         ctx.strokeStyle = this.color;
 
         // заданная сторона и смещение ластика от края
-        const width = 30*S;
-        const shift = 16*S;
+        const width = 29*S;
+        const shift = 17*S;
 
         const inscribedWidth = width + shift*Math.sqrt(2);
         const inscribedHeight = Math.sqrt(2*Math.pow((this.side - inscribedWidth/Math.sqrt(2)), 2));

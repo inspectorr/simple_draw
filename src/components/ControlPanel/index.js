@@ -8,9 +8,10 @@ import ColorImage from './images/ColorImage';
 import ThicknessImage from './images/ThicknessImage';
 import EraserImage from './images/EraserImage';
 import UndoImage from './images/UndoImage';
+import DownloadImage from './images/DownloadImage';
+
 
 export default class ControlPanel extends Component {
-
     render() {
         const settings = {
             side: this.props.panelProps.height,
@@ -65,12 +66,26 @@ export default class ControlPanel extends Component {
                 key='Undo'
                 image={UndoImage}
                 pressed={false}
-                onClick={() => {this.props.undo()}}
+                animatePress={true}
+                onClick={() => {
+                    this.props.undo();
+                }}
                 {...settings}
             />,
-        ]
+
+        <a key='Download' href={this.props.canvasHref} download>
+                <Button
+                    image={DownloadImage}
+                    pressed={false}
+                    animatePress={true}
+                    onClick={() => {}}
+                    {...settings}
+                />
+            </a>,
+        ];
 
         const side = this.props.height;
+        const bgColor = this.props.bgColor;
 
         return (
             <div
@@ -79,7 +94,8 @@ export default class ControlPanel extends Component {
                 style={{
                     width: `${this.props.width}px`,
                     height: `${side}px`,
-                    backgroundColor: `${this.props.bgColor}`
+                    backgroundColor: `${bgColor}`,
+                    borderBottom: bgColor === '#ffffff' ? '0.05em solid black' : 'none', 
                 }}
             >
                 {items}

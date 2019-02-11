@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './style.css';
 
+
 export default class Canvas extends Component {
     state = {
         brush: Object.assign({}, this.props.panelProps.brush),
@@ -9,6 +10,10 @@ export default class Canvas extends Component {
         history: [],
         currentInputLinePoints: [],
     }
+
+    // getURL() {
+    //     return this.refs.canvas.toDataURL('image/jpeg', 1);
+    // }
 
     printServiceLog() {
         const N = this.state.history.length;
@@ -22,6 +27,12 @@ export default class Canvas extends Component {
         console.log('points =', this.state.currentInputLinePoints);
     }
 
+    sendURL() {
+        // отправляем url холста в App
+        const canvasURL = this.refs.canvas.toDataURL('image/jpeg', 1);
+        this.props.setCanvasURL(canvasURL);
+    }
+
     componentDidMount() {
         const canvas = this.refs.canvas;
 
@@ -31,6 +42,8 @@ export default class Canvas extends Component {
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, this.props.width, this.props.height);
         ctx.restore();
+
+        this.sendURL();
 
         const self = this;
         const coords = canvas.getBoundingClientRect();
@@ -77,6 +90,8 @@ export default class Canvas extends Component {
                 buffer: [],
                 currentInputLinePoints: [],
             });
+
+            self.sendURL();
         }
 
         // если произошел единичный тап по холсту,
@@ -166,8 +181,8 @@ export default class Canvas extends Component {
 
             if (closingSliderOnSingleTap) {
                 self.props.closeSlider();
-                canvas.removeEventListener('mousemove', onMouseMove);
-                canvas.removeEventListener('mouseup', onMouseUp);
+                canvas.removeEventListener('touchmove', onMouseMove);
+                canvas.removeEventListener('touchend', onMouseUp);
                 return;
             };
 
@@ -293,6 +308,11 @@ export default class Canvas extends Component {
                 ref='canvas'
                 width={this.props.width}
                 height={this.props.height}
+                style={{
+                    position: 'fixed',
+                    top: this.props.app.controlPanel.height + 'px',
+                    left: 0,
+                }}
             ></canvas>
         );
     }
