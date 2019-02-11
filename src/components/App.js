@@ -5,7 +5,19 @@ import ControlPanel from './ControlPanel';
 import Palette from './Palette';
 import ThicknessSlider from './ThicknessSlider';
 
-import { reverseColor } from '../colorFunctions';
+function reverseColor(color) {
+    color = color.slice(1);
+    let r = parseInt(color.slice(0, 2), 16);
+    let g = parseInt(color.slice(2, 4), 16);
+    let b = parseInt(color.slice(4, 6), 16);
+    r = (255 - r).toString(16);
+    g = (255 - g).toString(16);
+    b = (255 - b).toString(16);
+    r = r.length < 2 ? '0' + r : r;
+    g = g.length < 2 ? '0' + g : g;
+    b = b.length < 2 ? '0' + b : b;
+    return `#${r}${g}${b}`;
+}
 
 const {clientWidth, clientHeight} = document.documentElement;
 
@@ -48,12 +60,16 @@ class App extends Component {
                 // https://puzzleweb.ru/html/colors_html.php
                 '#000000', // черный
                 '#501111', // бордовый
-                '#ffaaaa', // розовый
+                '#CC9966',
                 '#ffff7f', // желтый
+                '#006600',
+                '#33CC99',
                 '#AFEEEE', // голубой
-                '#D294DA',
-                '#000080', // синий navy
-                '#4B0082', // фиолетовый indigo
+                '#000066', // синий navy
+                '#CC99FF',
+                '#ffaaaa', // розовый
+                '#CC3366',
+                '#550055',
             ],
         };
 

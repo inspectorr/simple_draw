@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 
-// почитай сука про импорт нормальный а то это не смещно даже
-import { muteColor } from 'C:/Users/User/Desktop/dev/simple_draw/src/colorFunctions.js';
+function muteColor(color) {
+    color = color.slice(1);
+    let r = parseInt(color.slice(0, 2), 16);
+    let g = parseInt(color.slice(2, 4), 16);
+    let b = parseInt(color.slice(4, 6), 16);
+    return `rgb(${r*0.8}, ${g*0.8}, ${b*0.8})`;
+}
 
 export default class Button extends Component {
 
