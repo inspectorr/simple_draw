@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
 
-function muteColor(color) {
+function muteColor(color, level) {
     color = color.slice(1);
     let r = parseInt(color.slice(0, 2), 16);
     let g = parseInt(color.slice(2, 4), 16);
     let b = parseInt(color.slice(4, 6), 16);
-    return `rgb(${Math.floor(r*0.8)}, ${Math.floor(g*0.8)}, ${Math.floor(b*0.8)})`;
+    return `rgb(${Math.floor(r*level)}, ${Math.floor(g*level)}, ${Math.floor(b*level)})`;
 }
 
 export default class Button extends Component {
+    state = {
+        bgColor: this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor,
+    }
 
     draw(bgColor) {
         const side = this.props.side;
@@ -25,8 +28,7 @@ export default class Button extends Component {
     }
 
     componentDidMount() {
-        const bgColor = this.props.pressed ? muteColor(this.props.bgColor) : this.props.bgColor;
-        this.draw(bgColor);
+        this.draw(this.state.bgColor);
 
         if (!this.props.animatePress) return;
 
@@ -41,17 +43,17 @@ export default class Button extends Component {
     }
 
     press() {
-        const bgColor = muteColor(this.props.bgColor);
+        const bgColor = muteColor(this.state.bgColor, 0.8);
         this.draw(bgColor);
     }
 
     depress() {
-        const bgColor = this.props.bgColor;
+        const bgColor = this.state.bgColor;
         this.draw(bgColor);
     }
 
     componentDidUpdate() {
-        const bgColor = this.props.pressed ? muteColor(this.props.bgColor) : this.props.bgColor;
+        const bgColor = this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor;
         this.draw(bgColor);
     }
 
@@ -64,6 +66,12 @@ export default class Button extends Component {
             <button
                 ref='button'
                 onClick={() => this.props.onClick()}
+                onMouseOver={() => {
+                    if (!this.props.pressed) this.draw(muteColor(this.props.bgColor, 0.9));
+                }}
+                onMouseOut={() => {
+                    this.draw(this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor);
+                }}
                 style={{width:`${side}px`, height:`${side}px`}}
             >
                 {canvas}

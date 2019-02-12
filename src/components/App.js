@@ -47,7 +47,7 @@ class App extends Component {
                 color: '#ffaaaa',
                 thickness: 0.01*this.state.window.height,
                 minThickness: 1,
-                maxThickness: 0.05*this.state.window.height,
+                maxThickness: Math.floor(0.05*this.state.window.height),
                 opacity: 100,
             },
 

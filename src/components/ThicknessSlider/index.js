@@ -19,7 +19,8 @@ export default class ThicknessSlider extends Component {
         const maxThickness = this.props.panelProps.brush.maxThickness;
         const self = this;
 
-        thumb.addEventListener('mousedown', function(event) {
+        document.addEventListener('mousedown', function(event) {
+            if (!event.target.closest('.slider__thumb')) return;
             startDrag(event.clientX);
             document.addEventListener('mousemove', onDocumentMouseMove);
             document.addEventListener('mouseup', onDocumentMouseUp);
@@ -50,13 +51,12 @@ export default class ThicknessSlider extends Component {
 
             if (newLeft < 0) newLeft = 0;
 
-            const rightEdge = line.offsetWidth - thumb.offsetWidth;
+            const rightEdge = Math.floor(line.offsetWidth - thumb.offsetWidth) + 1;
             if (newLeft > rightEdge) newLeft = rightEdge;
 
             thumb.style.left = newLeft + 'px';
 
-            let newThickness =
-                minThickness + newLeft/rightEdge * maxThickness;
+            let newThickness = minThickness + newLeft/rightEdge * maxThickness;
             self.props.setBrushThickness(newThickness);
         }
 
@@ -109,9 +109,8 @@ export default class ThicknessSlider extends Component {
         const maxThickness = this.props.panelProps.brush.maxThickness;
         const thickness = this.props.panelProps.brush.thickness;
 
-        const rightEdge = Math.floor(this.props.width - sliderThumbWidth);
-        const thumbStartLeft = thickness/maxThickness * rightEdge -
-            minThickness/maxThickness * rightEdge;
+        const rightEdge = Math.floor(this.props.width - sliderThumbWidth) + 1;
+        const thumbStartLeft = thickness/maxThickness * rightEdge - minThickness/maxThickness * rightEdge;
 
         return (
             <div
@@ -134,7 +133,7 @@ export default class ThicknessSlider extends Component {
                         height: sliderLineHeight + 'px',
                         marginTop: -sliderLineHeight/2 + 'px',
                         borderTop: this.props.bgColor === '#ffffff' ? '0.05em solid black' : 'none',
-                        borderBottom: this.props.bgColor === '#ffffff' ? '0.05em solid black' : 'none', 
+                        borderBottom: this.props.bgColor === '#ffffff' ? '0.05em solid black' : 'none',
                     }}
                 >
                     <div
