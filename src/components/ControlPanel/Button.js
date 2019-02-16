@@ -9,9 +9,9 @@ function muteColor(color, level) {
 }
 
 export default class Button extends Component {
-    state = {
-        bgColor: this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor,
-    }
+    // state = {
+    //     bgColor: this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor,
+    // }
 
     draw(bgColor) {
         const side = this.props.side;
@@ -28,7 +28,9 @@ export default class Button extends Component {
     }
 
     componentDidMount() {
-        this.draw(this.state.bgColor);
+        const bgColor = this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor;
+
+        this.draw(bgColor);
 
         if (!this.props.animatePress) return;
 
@@ -43,12 +45,12 @@ export default class Button extends Component {
     }
 
     press() {
-        const bgColor = muteColor(this.state.bgColor, 0.8);
+        const bgColor = muteColor(this.props.bgColor, 0.8);
         this.draw(bgColor);
     }
 
     depress() {
-        const bgColor = this.state.bgColor;
+        const bgColor = this.props.bgColor;
         this.draw(bgColor);
     }
 

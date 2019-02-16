@@ -49,8 +49,9 @@ export default class Palette extends Component {
             fi = fi < 0 ? 360+fi : fi;
             const k = Math.floor(N*fi/360)
             const color = colors[k];
-            self.props.setBrushColor(color);
 
+            self.props.setBrushColor(color);
+            self.props.setDrawMode();
             self.props.closePalette();
         });
 

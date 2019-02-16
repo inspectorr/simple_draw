@@ -108,16 +108,14 @@ class App extends Component {
 
     // ресайз более не предусмотрен, не понятно как при нем менять canvas!
 
-    // componentDidMount() {
-    //     const self = this;
-    //     window.addEventListener('resize', function(event) {
-    //         const {clientWidth, clientHeight} = document.documentElement;
-    //         let window = Object.assign({}, self.state.window);
-    //         window.width = clientWidth;
-    //         window.height = clientHeight;
-    //         self.setState({ window });
-    //     });
-    // }
+    componentDidMount() {
+        let alerted = false;
+        window.addEventListener('resize', () => {
+            if (!alerted) alert('Холст был сгенерирован под размер окна вашего браузера. Чтобы сгенерировать новый холст, пожалуйста, обновите страницу.');
+            alerted = true;
+            setTimeout(() => alerted = false, 1000);
+        });
+    }
 
     openPalette() {
         if (this.state.thicknessSlider.open) this.closeSlider();
@@ -213,6 +211,7 @@ class App extends Component {
 
                 open={this.state.palette.open}
 
+                setDrawMode={() => this.setDrawMode()}
                 closePalette={() => this.closePalette()}
                 setBrushColor={(color) => this.setBrushColor(color)}
             />;
