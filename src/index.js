@@ -1,16 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './components/App';
-
-const AdKeeper = () => {
-  return <div style={{width: '100%', height: props.adHeight, backgroundColor: '#5F6368', postion: 'fixed', zIndex: 9999, bottom: 0}}></div>;
-}
+import AdKeeper from './components/AdKeeper';
 
 const ReactApp = (props) => {
+  const adHeight = 50;
   return (
     <div>
-      <App adHeight={props.adHeight}/>
-      <AdKeeper adHeight={props.adHeight}/>
+      <App adHeight={props.ad ? adHeight : 0}/>
+      {props.ad ? <AdKeeper adHeight={adHeight}/> : null}
     </div>
   );
 }
@@ -22,12 +20,7 @@ const app = {
 
   onDeviceReady: function() {
     window.screen.orientation.lock('portrait');
-    window.admob.createBannerView({
-      publisherId: "ca-app-pub-7113401163019527/8852005935",
-      adSize: window.admob.AD_SIZE.BANNER,
-    });
-    const adHeight = 50;
-    ReactDOM.render(<ReactApp adHeight={adHeight}/>, document.getElementById('root'));
+    ReactDOM.render(<ReactApp ad={false}/>, document.getElementById('root'));
   },
 };
 
