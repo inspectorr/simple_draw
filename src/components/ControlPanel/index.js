@@ -54,7 +54,7 @@ export default class ControlPanel extends Component {
             />,
 
             <Button
-                key='Earser'
+                key='Eraser'
                 image={EraserImage}
                 pressed={this.props.app.mode === 'erase'}
                 onClick={() => {
@@ -80,7 +80,17 @@ export default class ControlPanel extends Component {
                     image={DownloadImage}
                     pressed={false}
                     animatePress={true}
-                    onClick={() => {}}
+                    onClick={() => {
+                      window.canvas2ImagePlugin.saveImageDataToLibrary(
+                        function(msg){
+                          alert(msg);
+                        },
+                        function(err){
+                          alert(err);
+                        },
+                        document.getElementById('canvas')
+                      );
+                    }}
                     {...settings}
                 />
             </a>,

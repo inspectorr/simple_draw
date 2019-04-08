@@ -9,9 +9,6 @@ function muteColor(color, level) {
 }
 
 export default class Button extends Component {
-    // state = {
-    //     bgColor: this.props.pressed ? muteColor(this.props.bgColor, 0.8) : this.props.bgColor,
-    // }
 
     draw(bgColor) {
         const side = this.props.side;

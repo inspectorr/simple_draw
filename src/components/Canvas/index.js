@@ -11,10 +11,6 @@ export default class Canvas extends Component {
         currentInputLinePoints: [],
     }
 
-    // getURL() {
-    //     return this.refs.canvas.toDataURL('image/jpeg', 1);
-    // }
-
     printServiceLog() {
         const N = this.state.history.length;
         console.log(

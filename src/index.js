@@ -1,27 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './components/App';
+import ReactApp from './components/App';
 
-document.addEventListener('mousedown', function (event) {
-    event.preventDefault();
-});
+const app = {
+  initialize: function() {
+    document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
+  },
 
-document.addEventListener('dblclick', function (event) {
-    event.preventDefault();
-});
+  onDeviceReady: function() {
+    window.screen.orientation.lock('portrait');
+    ReactDOM.render(<ReactApp />, document.getElementById('root'));
+  },
+};
 
-document.addEventListener('contextmenu', function (event) {
-    event.preventDefault();
-});
-
-document.addEventListener('touchstart', function (event) {
-    event.preventDefault();
-});
-
-document.addEventListener('touchmove', function (event) {
-    event.preventDefault();
-});
-
-const root = document.getElementById('root');
-
-ReactDOM.render(<App />, root);
+app.initialize();
