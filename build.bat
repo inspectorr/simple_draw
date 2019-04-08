@@ -1,0 +1,1 @@
+npm run build && robocopy C:\Users\User\Desktop\dev\simple_draw\build C:\Users\User\Desktop\dev\simpleDrawMobile\www /E & cd C:\Users\User\Desktop\dev\simpleDrawMobile\www & cordova run android --debug & cd C:\Users\User\Desktop\dev\simple_draw\build & echo HAPPY TESTING!

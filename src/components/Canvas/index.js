@@ -3,9 +3,11 @@ import './style.css';
 
 
 export default class Canvas extends Component {
-  constructor() {
+  constructor(props) {
+    super(props);
+
     this.state = {
-      brush: Object.assign({}, this.props.panelProps.brush),
+      brush: Object.assign({}, props.panelProps.brush),
       history: [],
     }
 
@@ -15,15 +17,15 @@ export default class Canvas extends Component {
 
 
   printServiceLog() {
-    // const N = this.state.history.length;
-    // console.log(
-    //     `\nINPUT CAPTURED:`,
-    //     `line-${N}`,
-    //     `points:${this.state.currentInputLinePoints.length}`,
-    //     `color:${this.state.history[N-1].color}`,
-    //     `thickness:${this.state.history[N-1].thickness}`,
-    // );
-    // console.log('points =', this.state.currentInputLinePoints);
+    const N = this.state.history.length;
+    console.log(
+        `\nINPUT CAPTURED:`,
+        `line-${N}`,
+        `points:${this.currentInputLinePoints.length}`,
+        `color:${this.state.history[N-1].color}`,
+        `thickness:${this.state.history[N-1].thickness}`,
+    );
+    console.log('points =', this.currentInputLinePoints);
   }
 
   sendURL() {
@@ -65,11 +67,11 @@ export default class Canvas extends Component {
       if (self.props.app.mode === 'erase') color = '#fff';
 
       // const buffer = self.state.buffer.slice();
-      const buffer = this.buffer;
+      const buffer = self.buffer;
 
       if (buffer.length>=4) {
         self.UPDATE(buffer, color, thickness);
-        this.buffer = [].concat(buffer[buffer.length-1]);
+        self.buffer = [].concat(buffer[buffer.length-1]);
         // self.setState({ buffer: [].concat(buffer[buffer.length-1]) });
       }
     }
@@ -92,8 +94,8 @@ export default class Canvas extends Component {
       //   buffer: [],
       //   currentInputLinePoints: [],
       // });
-      this.buffer = [];
-      this.currentInputLinePoints = [];
+      self.buffer = [];
+      self.currentInputLinePoints = [];
 
       self.sendURL();
     }
