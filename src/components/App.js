@@ -31,7 +31,7 @@ class App extends Component {
 
     let {clientWidth, clientHeight} = document.documentElement;
     this.state.window = {
-      height: clientHeight,
+      height: clientHeight - this.props.adHeight,
       width: clientWidth
     };
 
@@ -210,7 +210,7 @@ class App extends Component {
     } else {
       thicknessSlider = null;
     }
-
+    
     return [controlPanel, canvas, palette, thicknessSlider];
   }
 }
